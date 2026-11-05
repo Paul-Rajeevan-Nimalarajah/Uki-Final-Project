@@ -30,6 +30,10 @@ const FindClasses = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const isTeacher = user?.role === "teacher";
+  const isStudent = user?.role === "student";
+  const isGuest = !user;
+
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState("All");
@@ -40,7 +44,7 @@ const FindClasses = () => {
 
   // Teacher Create Class modal state
   const [showCreateModal, setShowCreateModal] = useState(
-    searchParams.get("create") === "true"
+    isTeacher && searchParams.get("create") === "true"
   );
   const [creating, setCreating] = useState(false);
   const [newClass, setNewClass] = useState({
@@ -64,7 +68,7 @@ const FindClasses = () => {
     demandId: searchParams.get("demandId") || "",
   });
 
-  // Simulated Payment Checkout Modal for Class Enrollment
+  // Simulated Payment Checkout Modal for Student Class Enrollment
   const [checkoutClass, setCheckoutClass] = useState(null);
   const [enrolling, setEnrolling] = useState(false);
   const [message, setMessage] = useState("");
@@ -136,33 +140,40 @@ const FindClasses = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
+      {/* Role-Specific Header Banner */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand-teal bg-brand-teal/10 px-2.5 py-1 rounded-full mb-2">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full mb-2">
             <Sparkles className="w-3.5 h-3.5" />
-            Class Marketplace
+            {isTeacher ? "Teacher Class Management" : "Class Marketplace"}
           </span>
           <h1 className="text-2xl font-extrabold text-slate-900">
-            Browse Topic, Unit, Group &amp; Paper Classes
+            {isTeacher
+              ? "Publish & Manage Topic, Unit, Group & Paper Classes"
+              : "Browse Topic, Unit, Group & Paper Classes"}
           </h1>
           <p className="text-sm text-slate-500">
-            Enroll in scheduled classes by verified teachers or request a custom
-            1-to-1 session.
+            {isTeacher
+              ? "Create targeted classes for high-demand syllabus topics and track student enrollments."
+              : "Enroll in scheduled classes by verified teachers or request a custom 1-to-1 session."}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => navigate("/bookings?tab=request")}
-            className="px-4 py-2.5 rounded-xl border border-brand-blue text-brand-blue hover:bg-brand-blue/5 text-xs sm:text-sm font-semibold transition-all"
-          >
-            Request 1-to-1 Class
-          </button>
-          {(user?.role === "teacher" || user?.role === "admin") && (
+          {(isStudent || isGuest) && (
+            <button
+              onClick={() =>
+                isGuest ? navigate("/login") : navigate("/bookings?tab=request")
+              }
+              className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-800 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition-all"
+            >
+              Request 1-to-1 Class
+            </button>
+          )}
+          {isTeacher && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-teal hover:bg-teal-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all"
             >
               <Plus className="w-4 h-4" />
               <span>Create Class</span>
@@ -193,7 +204,7 @@ const FindClasses = () => {
               onClick={() => setSelectedType(type)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 selectedType === type
-                  ? "bg-brand-blue text-white shadow-sm"
+                  ? "bg-slate-900 text-white shadow-sm"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
@@ -208,12 +219,12 @@ const FindClasses = () => {
             value={searchTopic}
             onChange={(e) => setSearchTopic(e.target.value)}
             placeholder="Search by Topic, Subject, or Title..."
-            className="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-blue"
+            className="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
           />
           <select
             value={selectedMedium}
             onChange={(e) => setSelectedMedium(e.target.value)}
-            className="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue"
+            className="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900"
           >
             <option value="">All Mediums (English / Sinhala / Tamil)</option>
             <option value="English">English Medium</option>
@@ -244,31 +255,61 @@ const FindClasses = () => {
           <h3 className="text-lg font-bold text-slate-800">
             No Matching Classes Found
           </h3>
-          <p className="text-sm text-slate-500 max-w-md mx-auto">
-            Can&apos;t find the exact topic you need? Request a 1-to-1 class or mark
-            the topic as &quot;Not Clear&quot; on the Syllabus page so teachers can create
-            it for you!
-          </p>
-          <div className="flex justify-center gap-3 pt-2">
-            <button
-              onClick={() => navigate("/bookings?tab=request")}
-              className="px-4 py-2 bg-brand-blue text-white text-xs font-semibold rounded-xl"
-            >
-              Request 1-to-1 Class
-            </button>
-            <button
-              onClick={() => navigate("/syllabus")}
-              className="px-4 py-2 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold rounded-xl"
-            >
-              Mark Topic as &quot;Not Clear&quot; (Demand)
-            </button>
-          </div>
+          {isTeacher ? (
+            <>
+              <p className="text-sm text-slate-500 max-w-md mx-auto">
+                Publish a new class for this topic to match waiting students.
+              </p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-xl"
+              >
+                + Create Class
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-slate-500 max-w-md mx-auto">
+                Can&apos;t find the exact topic you need? Request a 1-to-1 class
+                or mark the topic as &quot;Not Clear&quot; on the Syllabus page!
+              </p>
+              <div className="flex justify-center gap-3 pt-2">
+                <button
+                  onClick={() =>
+                    isGuest
+                      ? navigate("/login")
+                      : navigate("/bookings?tab=request")
+                  }
+                  className="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-xl"
+                >
+                  Request 1-to-1 Class
+                </button>
+                <button
+                  onClick={() => navigate("/syllabus")}
+                  className="px-4 py-2 bg-slate-100 text-slate-800 border border-slate-200 text-xs font-semibold rounded-xl"
+                >
+                  Mark Topic as &quot;Not Clear&quot;
+                </button>
+              </div>
+            </>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClasses.map((cls) => {
             const enrolledCount = cls.enrolledStudents?.length || 0;
-            const seatsLeft = Math.max(0, (cls.maxStudents || 25) - enrolledCount);
+            const seatsLeft = Math.max(
+              0,
+              (cls.maxStudents || 25) - enrolledCount
+            );
+            const isMyClass =
+              isTeacher &&
+              (cls.teacher?._id === user?._id || cls.teacher === user?._id);
+            const isAlreadyEnrolled =
+              isStudent &&
+              cls.enrolledStudents?.some(
+                (id) => (id._id || id) === user?._id
+              );
 
             return (
               <div
@@ -298,7 +339,7 @@ const FindClasses = () => {
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-brand-teal bg-brand-teal/10 px-2.5 py-1 rounded-lg">
+                      <span className="font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
                         Topic: {cls.topicName || cls.unitTitle || cls.subject}
                       </span>
                       <span className="flex items-center gap-1 text-amber-600 font-semibold">
@@ -320,13 +361,13 @@ const FindClasses = () => {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-3.5 h-3.5 text-brand-blue" />
+                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
                         <span>
                           {cls.date} • {cls.time} ({cls.duration})
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Users className="w-3.5 h-3.5 text-brand-teal" />
+                        <Users className="w-3.5 h-3.5 text-slate-500" />
                         <span>
                           {enrolledCount}/{cls.maxStudents} Enrolled •{" "}
                           <strong className="text-emerald-600">
@@ -337,6 +378,7 @@ const FindClasses = () => {
                     </div>
                   </div>
 
+                  {/* Role-Specific Card Action Footer */}
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                     <div>
                       <span className="text-[11px] text-slate-400 block">
@@ -346,13 +388,42 @@ const FindClasses = () => {
                         LKR {cls.fee}
                       </span>
                     </div>
-                    <button
-                      onClick={() => setCheckoutClass(cls)}
-                      disabled={seatsLeft === 0}
-                      className="px-4 py-2 bg-brand-blue hover:bg-blue-700 disabled:bg-slate-300 text-white text-xs font-semibold rounded-xl shadow-sm transition-all"
-                    >
-                      {seatsLeft === 0 ? "Class Full" : "Enroll & Pay"}
-                    </button>
+
+                    {(isStudent || isGuest) &&
+                      (isAlreadyEnrolled ? (
+                        <button
+                          onClick={() => navigate("/bookings?tab=timetable")}
+                          className="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-xl"
+                        >
+                          Enrolled ✓ (View Timetable)
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            isGuest
+                              ? navigate("/login")
+                              : setCheckoutClass(cls)
+                          }
+                          disabled={seatsLeft === 0}
+                          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white text-xs font-semibold rounded-xl shadow-sm transition-all"
+                        >
+                          {seatsLeft === 0 ? "Class Full" : "Enroll & Pay"}
+                        </button>
+                      ))}
+
+                    {isTeacher && (
+                      <span
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border ${
+                          isMyClass
+                            ? "bg-slate-100 text-slate-800 border-slate-300"
+                            : "bg-slate-50 text-slate-500 border-slate-200"
+                        }`}
+                      >
+                        {isMyClass
+                          ? `Your Class (${enrolledCount} Enrolled)`
+                          : "Published Class"}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -361,8 +432,8 @@ const FindClasses = () => {
         </div>
       )}
 
-      {/* Teacher Create Class Modal */}
-      {showCreateModal && (
+      {/* Teacher-Only Create Class Modal */}
+      {isTeacher && showCreateModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-xl my-8">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -567,7 +638,7 @@ const FindClasses = () => {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-brand-teal hover:bg-teal-700 rounded-xl shadow-sm"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-sm"
                 >
                   {creating ? "Publishing..." : "Publish Class"}
                 </button>
@@ -577,13 +648,13 @@ const FindClasses = () => {
         </div>
       )}
 
-      {/* Simulated Payment & 80/20 Split Checkout Modal */}
-      {checkoutClass && (
+      {/* Student-Only Checkout Modal */}
+      {isStudent && checkoutClass && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-brand-blue" />
+                <CreditCard className="w-5 h-5 text-slate-800" />
                 <h3 className="text-base font-bold text-slate-900">
                   LearnyMo Secure Class Checkout
                 </h3>
@@ -629,7 +700,7 @@ const FindClasses = () => {
             <button
               onClick={handleConfirmEnroll}
               disabled={enrolling}
-              className="w-full py-2.5 bg-brand-blue hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-sm transition-all"
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl shadow-sm transition-all"
             >
               {enrolling
                 ? "Processing Payment..."
@@ -643,4 +714,3 @@ const FindClasses = () => {
 };
 
 export default FindClasses;
-

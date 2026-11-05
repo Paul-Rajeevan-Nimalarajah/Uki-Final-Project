@@ -50,13 +50,15 @@ const OnlineClassroom = () => {
   }, [bookingId]);
 
   const handleCompleteAndRate = async (e) => {
-    e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await API.put(`/marketplace/bookings/${bookingId}/complete`, {
-        stars,
-        feedback,
-      });
+      const payload =
+        user?.role === "student" ? { stars, feedback } : {};
+      const res = await API.put(
+        `/marketplace/bookings/${bookingId}/complete`,
+        payload
+      );
       setBooking(res.data);
       setShowRateModal(false);
       navigate("/bookings");
@@ -133,13 +135,23 @@ const OnlineClassroom = () => {
             <ExternalLink className="w-3.5 h-3.5" />
             <span>Pop Out Video</span>
           </a>
-          <button
-            onClick={() => setShowRateModal(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-sm"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Complete Class &amp; Rate Teacher</span>
-          </button>
+          {user?.role === "student" ? (
+            <button
+              onClick={() => setShowRateModal(true)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-sm"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Complete Class &amp; Rate Teacher</span>
+            </button>
+          ) : (
+            <button
+              onClick={handleCompleteAndRate}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-sm"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Mark Class Completed</span>
+            </button>
+          )}
           <button
             onClick={() => navigate("/bookings")}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-semibold text-white"

@@ -265,6 +265,17 @@ const HomeLanding = () => {
   );
 };
 
+const RoleRoute = ({ allowedRoles, allowGuest = false, children }) => {
+  const { user } = useAuth();
+  if (!user) {
+    return allowGuest ? children : <Navigate to="/login" replace />;
+  }
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+};
+
 function App() {
   return (
     <Router>
@@ -276,22 +287,71 @@ function App() {
               <Route path="/" element={<HomeLanding />} />
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/classes" element={<FindClasses />} />
-              <Route path="/bookings" element={<BookingsAndChat />} />
+              <Route
+                path="/classes"
+                element={
+                  <RoleRoute
+                    allowedRoles={["student", "teacher"]}
+                    allowGuest={true}
+                  >
+                    <FindClasses />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="/bookings"
+                element={
+                  <RoleRoute
+                    allowedRoles={["student", "teacher"]}
+                    allowGuest={true}
+                  >
+                    <BookingsAndChat />
+                  </RoleRoute>
+                }
+              />
               <Route
                 path="/classroom/:bookingId"
-                element={<OnlineClassroom />}
+                element={
+                  <RoleRoute allowedRoles={["student", "teacher"]}>
+                    <OnlineClassroom />
+                  </RoleRoute>
+                }
               />
-              <Route path="/syllabus" element={<SyllabusAndDemand />} />
+              <Route
+                path="/syllabus"
+                element={
+                  <RoleRoute
+                    allowedRoles={["student", "teacher"]}
+                    allowGuest={true}
+                  >
+                    <SyllabusAndDemand />
+                  </RoleRoute>
+                }
+              />
               <Route path="/dashboard" element={<RoleDashboard />} />
-              <Route path="/admin/academic" element={<AdminAcademic />} />
+              <Route
+                path="/admin/academic"
+                element={
+                  <RoleRoute allowedRoles={["admin"]}>
+                    <AdminAcademic />
+                  </RoleRoute>
+                }
+              />
               <Route
                 path="/teacher/profile"
-                element={<TeacherProfileSettings />}
+                element={
+                  <RoleRoute allowedRoles={["teacher"]}>
+                    <TeacherProfileSettings />
+                  </RoleRoute>
+                }
               />
               <Route
                 path="/admin/teachers"
-                element={<AdminTeacherVerification />}
+                element={
+                  <RoleRoute allowedRoles={["admin"]}>
+                    <AdminTeacherVerification />
+                  </RoleRoute>
+                }
               />
             </Routes>
           </main>

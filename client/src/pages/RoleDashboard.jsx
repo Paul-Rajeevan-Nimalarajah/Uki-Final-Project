@@ -100,18 +100,18 @@ const RoleDashboard = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleSeedDemo}
-          disabled={seeding}
-          className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl shadow-sm transition-all shrink-0"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>
-            {seeding
-              ? "Seeding Demo Data..."
-              : "Load Assessment Demo Data"}
-          </span>
-        </button>
+        {stats.role === "admin" && (
+          <button
+            onClick={handleSeedDemo}
+            disabled={seeding}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl shadow-sm transition-all shrink-0"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>
+              {seeding ? "Seeding Demo Data..." : "Reset Demo Data"}
+            </span>
+          </button>
+        )}
       </div>
 
       {seedMessage && (
@@ -400,12 +400,9 @@ const RoleDashboard = () => {
               <p className="text-2xl font-extrabold text-brand-teal mt-1">
                 {stats.totalClasses} Classes • {stats.totalDemands} Demands
               </p>
-              <button
-                onClick={() => navigate("/syllabus")}
-                className="text-xs text-brand-teal font-semibold mt-1 hover:underline"
-              >
-                View Demand Board →
-              </button>
+              <span className="text-[11px] text-slate-400 block mt-1">
+                Platform-wide marketplace activity
+              </span>
             </div>
           </div>
         </div>

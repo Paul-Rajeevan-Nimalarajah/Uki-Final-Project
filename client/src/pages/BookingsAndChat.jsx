@@ -26,9 +26,16 @@ const BookingsAndChat = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState(
-    searchParams.get("tab") === "request" ? "request" : "bookings"
-  );
+  const isStudent = user?.role === "student";
+  const isTeacher = user?.role === "teacher";
+
+  const [activeTab, setActiveTab] = useState(() => {
+    const requestedTab = searchParams.get("tab");
+    if (requestedTab === "timetable") return "timetable";
+    if (requestedTab === "request" && user?.role === "student") return "request";
+    return "bookings";
+  });
+
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeChatBooking, setActiveChatBooking] = useState(null);
@@ -42,7 +49,7 @@ const BookingsAndChat = () => {
   );
   const [error, setError] = useState("");
 
-  // 1-to-1 Request Form State
+  // Student-Only 1-to-1 Request Form State
   const [reqForm, setReqForm] = useState({
     learningRequirement: "Specific Topic",
     grade: searchParams.get("grade") || "A/L",
@@ -59,7 +66,7 @@ const BookingsAndChat = () => {
   });
   const [submittingReq, setSubmittingReq] = useState(false);
 
-  // Teacher Accept Fee State
+  // Teacher-Only Accept Fee State
   const [customFee, setCustomFee] = useState({});
 
   const loadBookings = async () => {
@@ -178,7 +185,7 @@ const BookingsAndChat = () => {
         </p>
         <button
           onClick={() => navigate("/login")}
-          className="px-5 py-2.5 bg-brand-blue text-white text-sm font-semibold rounded-xl"
+          className="px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl"
         >
           Go to Login
         </button>
@@ -190,15 +197,18 @@ const BookingsAndChat = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Navigation Tabs */}
+      {/* Role-Specific Header & Navigation Tabs */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900">
-            1-to-1 Booking, Timetable &amp; Classroom Chat
+            {isTeacher
+              ? "Student Booking Requests, Timetable & Classroom Chat"
+              : "1-to-1 Booking, Timetable & Classroom Chat"}
           </h1>
           <p className="text-sm text-slate-500">
-            Student Need → Teacher Match → Payment (80/20 Split) → Confirmed
-            Timetable → Chat &amp; Class Card → Online Class
+            {isTeacher
+              ? "Accept incoming 1-to-1 student requests, set session fees, and join confirmed online classes."
+              : "Request 1-to-1 classes, complete booking payments, and chat directly with your teacher."}
           </p>
         </div>
 
@@ -207,32 +217,35 @@ const BookingsAndChat = () => {
             onClick={() => setActiveTab("bookings")}
             className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "bookings"
-                ? "bg-white text-brand-blue shadow-sm"
+                ? "bg-white text-slate-900 shadow-sm"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            Bookings &amp; Chat ({bookings.length})
+            {isTeacher ? "Student Requests & Chat" : "My Bookings & Chat"} (
+            {bookings.length})
           </button>
           <button
             onClick={() => setActiveTab("timetable")}
             className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
               activeTab === "timetable"
-                ? "bg-white text-brand-teal shadow-sm"
+                ? "bg-white text-slate-900 shadow-sm"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
             Confirmed Timetable ({confirmedTimetable.length})
           </button>
-          <button
-            onClick={() => setActiveTab("request")}
-            className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === "request"
-                ? "bg-brand-blue text-white shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            + Request 1-to-1 Class
-          </button>
+          {isStudent && (
+            <button
+              onClick={() => setActiveTab("request")}
+              className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                activeTab === "request"
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              + Request 1-to-1 Class
+            </button>
+          )}
         </div>
       </div>
 
@@ -249,8 +262,8 @@ const BookingsAndChat = () => {
         </div>
       )}
 
-      {/* TAB 1: REQUEST A 1-TO-1 CLASS */}
-      {activeTab === "request" && (
+      {/* STUDENT-ONLY TAB: REQUEST A 1-TO-1 CLASS */}
+      {isStudent && activeTab === "request" && (
         <div className="max-w-3xl mx-auto space-y-6">
           <AcademicSelector
             onSelect={(sel) =>
@@ -431,7 +444,7 @@ const BookingsAndChat = () => {
             <button
               type="submit"
               disabled={submittingReq}
-              className="w-full py-3 bg-brand-blue hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-sm transition-all"
+              className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl shadow-sm transition-all"
             >
               {submittingReq
                 ? "Matching with Verified Teachers..."
@@ -450,7 +463,8 @@ const BookingsAndChat = () => {
                 Confirmed Class Timetable
               </h3>
               <p className="text-xs text-slate-500">
-                Only confirmed &amp; paid classes appear in your official timetable.
+                Only confirmed &amp; paid classes appear in your official
+                timetable.
               </p>
             </div>
             <span className="text-xs font-semibold bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200">
@@ -460,8 +474,7 @@ const BookingsAndChat = () => {
 
           {confirmedTimetable.length === 0 ? (
             <div className="p-8 text-center text-slate-500 text-sm">
-              No confirmed classes in your timetable yet. Complete payment on an
-              accepted request or enroll in a Group Class!
+              No confirmed classes in your timetable yet.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -471,7 +484,9 @@ const BookingsAndChat = () => {
                     <th className="py-3 px-4">Date &amp; Time</th>
                     <th className="py-3 px-4">Subject &amp; Topic</th>
                     <th className="py-3 px-4">Type &amp; Duration</th>
-                    <th className="py-3 px-4">Teacher / Student</th>
+                    <th className="py-3 px-4">
+                      {isStudent ? "Teacher" : "Student"}
+                    </th>
                     <th className="py-3 px-4 text-right">Online Classroom</th>
                   </tr>
                 </thead>
@@ -485,7 +500,7 @@ const BookingsAndChat = () => {
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="font-semibold text-brand-blue">
+                        <span className="font-semibold text-slate-900">
                           {item.subject}
                         </span>
                         <span className="block text-xs text-slate-600">
@@ -496,14 +511,14 @@ const BookingsAndChat = () => {
                         {item.bookingType} • {item.duration}
                       </td>
                       <td className="py-3.5 px-4 text-xs font-medium text-slate-700">
-                        {user.role === "student"
+                        {isStudent
                           ? item.teacher?.name || "Verified Teacher"
                           : item.student?.name || "Student"}
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <button
                           onClick={() => navigate(`/classroom/${item._id}`)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-teal hover:bg-teal-700 text-white text-xs font-semibold rounded-xl shadow-sm"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-sm"
                         >
                           <Video className="w-3.5 h-3.5" />
                           <span>Join Class</span>
@@ -532,16 +547,20 @@ const BookingsAndChat = () => {
                 <h3 className="font-bold text-slate-800">
                   No Bookings or Requests Yet
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Request a 1-to-1 session or enroll in a Group/Topic class to
-                  start learning.
-                </p>
-                <button
-                  onClick={() => setActiveTab("request")}
-                  className="px-4 py-2 bg-brand-blue text-white text-xs font-semibold rounded-xl"
-                >
-                  Request 1-to-1 Class
-                </button>
+                {isStudent && (
+                  <>
+                    <p className="text-xs text-slate-500">
+                      Request a 1-to-1 session or enroll in a Group/Topic class
+                      to start learning.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab("request")}
+                      className="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-xl"
+                    >
+                      Request 1-to-1 Class
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               bookings.map((b) => {
@@ -552,7 +571,7 @@ const BookingsAndChat = () => {
                     onClick={() => setActiveChatBooking(b)}
                     className={`cursor-pointer bg-white rounded-2xl p-5 border transition-all space-y-3 ${
                       isSelected
-                        ? "border-brand-blue ring-2 ring-brand-blue/20 shadow-md"
+                        ? "border-slate-900 ring-2 ring-slate-900/10 shadow-md"
                         : "border-slate-200 hover:border-slate-300 shadow-sm"
                     }`}
                   >
@@ -576,9 +595,9 @@ const BookingsAndChat = () => {
                           b.status === "Confirmed"
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : b.status === "Completed"
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
+                            ? "bg-slate-100 text-slate-800 border border-slate-300"
                             : b.status === "Teacher Accepted"
-                            ? "bg-purple-50 text-purple-700 border border-purple-200"
+                            ? "bg-blue-50 text-blue-700 border border-blue-200"
                             : "bg-amber-50 text-amber-700 border border-amber-200"
                         }`}
                       >
@@ -588,11 +607,11 @@ const BookingsAndChat = () => {
 
                     <div className="flex flex-wrap gap-4 text-xs text-slate-600">
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-brand-blue" />
+                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
                         {b.preferredDate} ({b.preferredTimeRange})
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-brand-teal" />
+                        <Clock className="w-3.5 h-3.5 text-slate-500" />
                         {b.duration}
                       </span>
                       <span className="font-bold text-slate-900">
@@ -616,13 +635,14 @@ const BookingsAndChat = () => {
                       </span>
                     </div>
 
+                    {/* Strict Role-Based Action Buttons */}
                     <div
                       className="pt-2 flex flex-wrap items-center gap-2"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {(user.role === "teacher" || user.role === "admin") &&
+                      {isTeacher &&
                         ["Pending", "Teacher Found"].includes(b.status) && (
-                          <div className="flex items-center gap-2 w-full bg-teal-50/70 p-2.5 rounded-xl border border-teal-200">
+                          <div className="flex items-center gap-2 w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                             <input
                               type="number"
                               placeholder="Set Fee (LKR)"
@@ -637,28 +657,37 @@ const BookingsAndChat = () => {
                             />
                             <button
                               onClick={() => handleTeacherAccept(b)}
-                              className="px-3.5 py-1.5 bg-brand-teal hover:bg-teal-700 text-white text-xs font-semibold rounded-lg shadow-sm"
+                              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-sm"
                             >
                               Accept Request &amp; Send Fee
                             </button>
                           </div>
                         )}
 
-                      {(user.role === "student" || user.role === "admin") &&
-                        ["Teacher Accepted", "Teacher Found", "Pending"].includes(
-                          b.status
-                        ) && (
-                          <button
-                            onClick={() => handleStudentPay(b)}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-brand-blue hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm"
-                          >
-                            <CreditCard className="w-3.5 h-3.5" />
-                            <span>
-                              Pay LKR {b.fee || 1500} &amp; Confirm Booking (80/20
-                              Split)
-                            </span>
-                          </button>
+                      {isTeacher && b.status === "Teacher Accepted" && (
+                        <span className="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
+                          Accepted • Waiting for Student Payment (LKR {b.fee})
+                        </span>
+                      )}
+
+                      {isStudent &&
+                        ["Pending", "Teacher Found"].includes(b.status) && (
+                          <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+                            Waiting for Teacher to Accept &amp; Confirm Fee
+                          </span>
                         )}
+
+                      {isStudent && b.status === "Teacher Accepted" && (
+                        <button
+                          onClick={() => handleStudentPay(b)}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-sm"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>
+                            Pay LKR {b.fee || 1500} &amp; Confirm Booking
+                          </span>
+                        </button>
+                      )}
 
                       {b.status === "Confirmed" && (
                         <button
@@ -700,16 +729,16 @@ const BookingsAndChat = () => {
                         : "Chat unlocks automatically once Booking is Confirmed"}
                     </p>
                   </div>
-                  <MessageSquare className="w-5 h-5 text-brand-blue" />
+                  <MessageSquare className="w-5 h-5 text-slate-700" />
                 </div>
 
                 {(activeChatBooking.status === "Confirmed" ||
                   activeChatBooking.status === "Completed") && (
-                  <div className="p-3 bg-gradient-to-r from-brand-blue/10 to-brand-teal/10 border-b border-brand-teal/20">
-                    <div className="bg-white rounded-xl p-3.5 border border-brand-teal/30 shadow-sm space-y-2">
+                  <div className="p-3 bg-slate-50 border-b border-slate-200">
+                    <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-sm space-y-2">
                       <div className="flex justify-between items-start">
                         <div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-brand-teal bg-brand-teal/10 px-2 py-0.5 rounded">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
                             Official LearnyMo Class Card
                           </span>
                           <h4 className="font-bold text-sm text-slate-900 mt-1">
@@ -736,12 +765,12 @@ const BookingsAndChat = () => {
                         onClick={() =>
                           navigate(`/classroom/${activeChatBooking._id}`)
                         }
-                        className="w-full py-2 bg-brand-teal hover:bg-teal-700 text-white font-bold text-xs rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition-all"
+                        className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition-all"
                       >
                         <Video className="w-4 h-4" />
                         <span>
                           {activeChatBooking.status === "Completed"
-                            ? "VIEW COMPLETED CLASSROOM & RATING"
+                            ? "VIEW COMPLETED CLASSROOM"
                             : "[ JOIN CLASS ]"}
                         </span>
                       </button>
@@ -755,11 +784,11 @@ const BookingsAndChat = () => {
                     <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
                       <MessageSquare className="w-8 h-8 text-slate-300" />
                       <p className="text-xs font-medium text-slate-600">
-                        Anti-Bypass Protection Active (Section 24 &amp; 61)
+                        Anti-Bypass Protection Active
                       </p>
                       <p className="text-xs text-slate-400">
-                        Complete booking confirmation &amp; payment on the left to
-                        unlock direct Student–Teacher chat and the Online
+                        Complete booking confirmation &amp; payment on the left
+                        to unlock direct Student–Teacher chat and the Online
                         Classroom link.
                       </p>
                     </div>
@@ -780,7 +809,7 @@ const BookingsAndChat = () => {
                           <div
                             className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-xs ${
                               isMe
-                                ? "bg-brand-blue text-white rounded-br-none"
+                                ? "bg-slate-900 text-white rounded-br-none"
                                 : "bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm"
                             }`}
                           >
@@ -809,10 +838,10 @@ const BookingsAndChat = () => {
                     onChange={(e) => setChatText(e.target.value)}
                     placeholder={
                       activeChatBooking.status === "Confirmed"
-                        ? "Type a message to your teacher/student..."
-                        : "Confirm booking to enable chat..."
+                        ? "Type a message to your class..."
+                        : "Confirm booking to unlock chat"
                     }
-                    className="flex-1 text-xs border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-blue disabled:bg-slate-100"
+                    className="flex-1 text-xs border border-slate-300 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:bg-slate-100"
                   />
                   <button
                     type="submit"
@@ -821,16 +850,16 @@ const BookingsAndChat = () => {
                       (activeChatBooking.status !== "Confirmed" &&
                         activeChatBooking.status !== "Completed")
                     }
-                    className="px-3.5 py-2 bg-brand-blue hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-xl text-xs font-semibold flex items-center gap-1"
+                    className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white rounded-xl flex items-center justify-center"
                   >
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className="w-4 h-4" />
                   </button>
                 </form>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-xs">
-                Select any booking on the left to view its Chat &amp; Classroom
-                Card.
+              <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500 text-xs">
+                Select a booking on the left to open its chat and classroom
+                card.
               </div>
             )}
           </div>
@@ -841,4 +870,3 @@ const BookingsAndChat = () => {
 };
 
 export default BookingsAndChat;
-
