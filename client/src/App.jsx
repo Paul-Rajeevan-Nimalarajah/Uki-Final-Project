@@ -68,27 +68,6 @@ const HomeLanding = () => {
           >
             Find a Class
           </button>
-          <button
-            onClick={() => navigate("/register")}
-            className="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-sm font-semibold rounded-xl transition-all"
-          >
-            Become a Teacher
-          </button>
-          {!user ? (
-            <button
-              onClick={() => navigate("/login")}
-              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-semibold rounded-xl transition-all"
-            >
-              Login
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-semibold rounded-xl transition-all"
-            >
-              Go to My Dashboard
-            </button>
-          )}
         </div>
 
         {/* Platform Highlights */}
@@ -116,7 +95,7 @@ const HomeLanding = () => {
           <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
             <p className="text-sm font-bold text-slate-900">80% / 20% Split</p>
             <p className="text-xs text-slate-500 mt-0.5">
-              80% directly to verified teachers • 3 Months Free Student Membership
+              80% directly to verified teachers • 20% platform service fee
             </p>
           </div>
         </div>

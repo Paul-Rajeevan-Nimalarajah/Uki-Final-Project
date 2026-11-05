@@ -172,14 +172,17 @@ const RoleDashboard = () => {
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <span className="text-xs text-slate-500 font-medium">
-                Membership Status (Sec 59)
+                1–4–7 Study Plans
               </span>
-              <p className="text-lg font-extrabold text-emerald-600 mt-1">
-                First 3 Months FREE
+              <p className="text-2xl font-extrabold text-slate-900 mt-1">
+                {stats.studyPlans?.length || 0}
               </p>
-              <span className="text-[11px] text-slate-400 block mt-2">
-                Then LKR 99/mo or LKR 999/yr
-              </span>
+              <button
+                onClick={() => navigate("/syllabus")}
+                className="text-xs text-slate-700 font-semibold mt-2 inline-flex items-center gap-1 hover:underline"
+              >
+                Open Study Planner <ArrowRight className="w-3 h-3" />
+              </button>
             </div>
           </div>
 
