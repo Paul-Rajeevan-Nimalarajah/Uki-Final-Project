@@ -15,23 +15,66 @@ const Navbar = () => {
 
   const isActive = (path) =>
     location.pathname === path
-      ? "text-brand-blue font-semibold bg-brand-blue/5 px-3 py-1.5 rounded-lg"
-      : "text-slate-600 hover:text-brand-blue px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors";
+      ? "text-slate-900 font-semibold bg-slate-100 px-3 py-1.5 rounded-lg"
+      : "text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors";
+
+  const getNavLinks = () => {
+    // 1. Guest / Landing Page (Not logged in)
+    if (!user) {
+      return [
+        { to: "/", label: "Home" },
+        { to: "/classes", label: "Find Classes" },
+        { to: "/bookings", label: "1-to-1 & Bookings" },
+        { to: "/syllabus", label: "Syllabus & Demand" },
+      ];
+    }
+
+    // 2. Admin Role
+    if (user.role === "admin") {
+      return [
+        { to: "/dashboard", label: "Dashboard" },
+        { to: "/admin/teachers", label: "Verify Teachers" },
+        { to: "/admin/academic", label: "Syllabus Admin" },
+      ];
+    }
+
+    // 3. Teacher Role
+    if (user.role === "teacher") {
+      return [
+        { to: "/dashboard", label: "Dashboard" },
+        { to: "/classes", label: "My Classes" },
+        { to: "/bookings", label: "Student Requests" },
+        { to: "/syllabus", label: "Topic Demand" },
+        { to: "/teacher/profile", label: "My Profile" },
+      ];
+    }
+
+    // 4. Student Role
+    return [
+      { to: "/dashboard", label: "Dashboard" },
+      { to: "/classes", label: "Find Classes" },
+      { to: "/bookings", label: "1-to-1 & Bookings" },
+      { to: "/syllabus", label: "Syllabus & Study Plan" },
+    ];
+  };
+
+  const navLinks = getNavLinks();
 
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center gap-2 shrink-0">
+          <Link
+            to={user ? "/dashboard" : "/"}
+            className="flex items-center gap-2 shrink-0"
+          >
             <img
               src={logo}
               alt="LearnyMo Logo"
               className="w-10 h-10 object-contain rounded-full"
             />
             <div>
-              <span className="text-xl font-bold bg-gradient-to-r from-brand-blue to-brand-teal bg-clip-text text-transparent">
-                LearnyMo
-              </span>
+              <span className="text-xl font-bold text-slate-900">LearnyMo</span>
               <p className="text-[10px] text-slate-400 -mt-1 font-medium tracking-tight">
                 Your Topic • Your Time • Your Teacher
               </p>
@@ -39,47 +82,15 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-1 text-sm font-medium">
-            <Link to="/" className={isActive("/")}>
-              Home
-            </Link>
-            <Link to="/classes" className={isActive("/classes")}>
-              Find Classes
-            </Link>
-            <Link to="/bookings" className={isActive("/bookings")}>
-              1-to-1 &amp; Bookings
-            </Link>
-            <Link to="/syllabus" className={isActive("/syllabus")}>
-              Syllabus &amp; Demand
-            </Link>
-            {user && (
-              <Link to="/dashboard" className={isActive("/dashboard")}>
-                Dashboard
-              </Link>
-            )}
-            {user?.role === "teacher" && (
+            {navLinks.map((link) => (
               <Link
-                to="/teacher/profile"
-                className={isActive("/teacher/profile")}
+                key={link.to}
+                to={link.to}
+                className={isActive(link.to)}
               >
-                My Profile
+                {link.label}
               </Link>
-            )}
-            {user?.role === "admin" && (
-              <>
-                <Link
-                  to="/admin/teachers"
-                  className={isActive("/admin/teachers")}
-                >
-                  Verify Teachers
-                </Link>
-                <Link
-                  to="/admin/academic"
-                  className={isActive("/admin/academic")}
-                >
-                  Syllabus Admin
-                </Link>
-              </>
-            )}
+            ))}
           </div>
 
           <div className="flex items-center gap-3">
@@ -89,11 +100,11 @@ const Navbar = () => {
                   to="/dashboard"
                   className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full transition-colors"
                 >
-                  <UserIcon className="w-4 h-4 text-brand-purple" />
+                  <UserIcon className="w-4 h-4 text-slate-600" />
                   <span className="text-sm font-medium text-slate-700 max-w-[110px] truncate">
                     {user.name}
                   </span>
-                  <span className="text-[10px] uppercase tracking-wider font-semibold bg-brand-teal/10 text-brand-teal px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">
                     {user.role}
                   </span>
                 </Link>
@@ -109,13 +120,13 @@ const Navbar = () => {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="text-sm font-medium text-slate-700 hover:text-brand-blue px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
+                  className="text-sm font-medium text-slate-700 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
                 >
                   Log In
                 </Link>
                 <Link
                   to="/register"
-                  className="text-sm font-medium text-white bg-brand-blue hover:bg-blue-700 px-4 py-2 rounded-lg shadow-sm transition-all"
+                  className="text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 px-4 py-2 rounded-lg shadow-sm transition-all"
                 >
                   Get Started
                 </Link>
@@ -126,35 +137,19 @@ const Navbar = () => {
 
         {/* Mobile quick navigation bar */}
         <div className="flex md:hidden items-center gap-2 overflow-x-auto py-2 border-t border-slate-100 text-xs font-medium">
-          <Link to="/" className="shrink-0 px-2.5 py-1 rounded bg-slate-100">
-            Home
-          </Link>
-          <Link
-            to="/classes"
-            className="shrink-0 px-2.5 py-1 rounded bg-slate-100"
-          >
-            Classes
-          </Link>
-          <Link
-            to="/bookings"
-            className="shrink-0 px-2.5 py-1 rounded bg-slate-100"
-          >
-            1-to-1 &amp; Bookings
-          </Link>
-          <Link
-            to="/syllabus"
-            className="shrink-0 px-2.5 py-1 rounded bg-slate-100"
-          >
-            Syllabus &amp; Demand
-          </Link>
-          {user && (
+          {navLinks.map((link) => (
             <Link
-              to="/dashboard"
-              className="shrink-0 px-2.5 py-1 rounded bg-brand-blue/10 text-brand-blue"
+              key={link.to}
+              to={link.to}
+              className={`shrink-0 px-2.5 py-1 rounded ${
+                location.pathname === link.to
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100 text-slate-700"
+              }`}
             >
-              Dashboard
+              {link.label}
             </Link>
-          )}
+          ))}
         </div>
       </div>
     </nav>

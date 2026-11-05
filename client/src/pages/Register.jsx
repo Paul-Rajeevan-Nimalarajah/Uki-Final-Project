@@ -51,7 +51,7 @@ const Register = () => {
       };
 
       await register(submissionData);
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setError(
         err.response?.data?.message ||
