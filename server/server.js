@@ -7,6 +7,7 @@ import academicRoutes from './routes/academicRoutes.js'
 import teacherRoutes from './routes/teacherRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
+import marketplaceRoutes from './routes/marketplaceRoutes.js'
 
 dotenv.config()
 
@@ -20,6 +21,7 @@ app.use('/api/academic',academicRoutes)
 app.use('/api/teachers',teacherRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/admin',adminRoutes)
+app.use('/api/marketplace', marketplaceRoutes)
 
 connectDB()
 

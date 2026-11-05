@@ -49,7 +49,7 @@ const AcademicSelector = ({ onSelect }) => {
     setSelectedTopicName(topic);
 
     if (onSelect && selectedSubject && selectedUnit) {
-      onselect({
+      onSelect({
         grade: selectedSubject.grade,
         stream: selectedSubject.stream,
         subject: selectedSubject.subject,

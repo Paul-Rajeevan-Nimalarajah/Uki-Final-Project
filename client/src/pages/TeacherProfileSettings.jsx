@@ -31,7 +31,7 @@ const TeacherProfileSettings = () => {
                     bio: tp.bio || '',
                     hourlyRate: tp.hourlyRate || 0,
                     experienceYears: tp.experienceYears || 0,
-                    subject: tp.subjects ? tp.subjects.join(', '): '',
+                    subjects: tp.subjects ? tp.subjects.join(', '): '',
                     qualifications: tp.qualifications ? tp.qualifications.join(', '):'',
                     verificationDocuments: tp.verificationDocuments ? tp.verificationDocuments.join(', '):'',
                 })
