@@ -8,6 +8,7 @@ import teacherRoutes from './routes/teacherRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import marketplaceRoutes from './routes/marketplaceRoutes.js'
+import { ensureProductionSampleData } from './utils/seedProductionData.js'
 
 dotenv.config()
 
@@ -23,7 +24,9 @@ app.use('/api/upload', uploadRoutes)
 app.use('/api/admin',adminRoutes)
 app.use('/api/marketplace', marketplaceRoutes)
 
-connectDB()
+connectDB().then(() => {
+    ensureProductionSampleData()
+})
 
 app.get('/api/health',(req,res)=>{
     res.status(200).json({
