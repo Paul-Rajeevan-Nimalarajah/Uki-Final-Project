@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Mail, Lock, LogIn, AlertCircle, Sparkles } from "lucide-react";
+import { Mail, Lock, LogIn, AlertCircle } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -23,8 +23,17 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate("/dashboard");
+      const data = await login(email, password);
+      if (
+        data?.role === "teacher" &&
+        (data?.teacherProfile?.verificationStatus ||
+          data?.verificationStatus ||
+          "pending") !== "approved"
+      ) {
+        navigate("/teacher/profile");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       setError(
         error.response?.data?.message ||
@@ -33,11 +42,6 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemoAccount = (demoEmail, demoPass) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
   };
 
   return (
@@ -50,39 +54,6 @@ const Login = () => {
         <p className="text-sm text-slate-500 mt-1">
           Sign in to access your classes and dashboard
         </p>
-      </div>
-
-      {/* 1-Click Quick Fill Demo Accounts for Assessment Presentation */}
-      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-          <Sparkles className="w-3.5 h-3.5 text-brand-blue" />
-          <span>Quick Demo Accounts (Click to Auto-Fill):</span>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => fillDemoAccount("admin@learnymo.lk", "Admin@123")}
-            className="py-1.5 px-2 text-xs font-semibold rounded-lg bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
-          >
-            Admin
-          </button>
-          <button
-            type="button"
-            onClick={() => fillDemoAccount("arjuna@learnymo.lk", "Teacher@123")}
-            className="py-1.5 px-2 text-xs font-semibold rounded-lg bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 transition-colors"
-          >
-            Teacher
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              fillDemoAccount("student@learnymo.lk", "Student@123")
-            }
-            className="py-1.5 px-2 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
-          >
-            Student
-          </button>
-        </div>
       </div>
 
       {isSessionExpired && (

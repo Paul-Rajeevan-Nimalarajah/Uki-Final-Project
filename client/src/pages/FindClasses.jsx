@@ -297,6 +297,20 @@ const FindClasses = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClasses.map((cls) => {
+            let adminLockedStatus = null;
+            try {
+              const locks = JSON.parse(
+                localStorage.getItem("adminClassStatusLocks") || "{}"
+              );
+              adminLockedStatus = locks[cls._id] || null;
+            } catch {
+              adminLockedStatus = null;
+            }
+            const effectiveStatus =
+              adminLockedStatus || cls.status || "Published";
+            const isClosedByAdmin = !["Published", "Ongoing"].includes(
+              effectiveStatus
+            );
             const enrolledCount = cls.enrolledStudents?.length || 0;
             const seatsLeft = Math.max(
               0,
@@ -318,13 +332,28 @@ const FindClasses = () => {
               >
                 {/* Clean Header Banner */}
                 <div className="bg-slate-50 border-b border-slate-200 p-4 flex flex-col justify-between gap-3">
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-start gap-2">
                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white text-slate-700 border border-slate-200">
                       {cls.classType}
                     </span>
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-200/70 text-slate-700">
-                      {cls.medium} Medium
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                          effectiveStatus === "Published" ||
+                          effectiveStatus === "Ongoing"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : effectiveStatus === "Cancelled" ||
+                              effectiveStatus === "Suspended"
+                            ? "bg-rose-50 text-rose-700 border border-rose-200"
+                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                        }`}
+                      >
+                        {effectiveStatus}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-200/70 text-slate-700">
+                        {cls.medium}
+                      </span>
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 font-medium">
@@ -404,10 +433,14 @@ const FindClasses = () => {
                               ? navigate("/login")
                               : setCheckoutClass(cls)
                           }
-                          disabled={seatsLeft === 0}
+                          disabled={seatsLeft === 0 || isClosedByAdmin}
                           className="px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white text-xs font-semibold rounded-xl shadow-sm transition-all"
                         >
-                          {seatsLeft === 0 ? "Class Full" : "Enroll & Pay"}
+                          {isClosedByAdmin
+                            ? `Class ${effectiveStatus}`
+                            : seatsLeft === 0
+                            ? "Class Full"
+                            : "Enroll & Pay"}
                         </button>
                       ))}
 
@@ -420,8 +453,8 @@ const FindClasses = () => {
                         }`}
                       >
                         {isMyClass
-                          ? `Your Class (${enrolledCount} Enrolled)`
-                          : "Published Class"}
+                          ? `Your Class • ${effectiveStatus} (${enrolledCount} Enrolled)`
+                          : `Status: ${effectiveStatus}`}
                       </span>
                     )}
                   </div>

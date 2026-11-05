@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { syncUserToRegistry } from "../utils/userRegistry";
 import { Layers, Flame, CheckCircle2 } from "lucide-react";
 
 const SyllabusAndDemand = () => {
@@ -34,13 +35,36 @@ const SyllabusAndDemand = () => {
         API.get("/academic"),
         API.get("/marketplace/demand"),
       ]);
-      setHierarchy(acadRes.data);
+      const acadList = acadRes.data || [];
+      setHierarchy(acadList);
       setDemands(demandRes.data);
+
+      if (acadList.length > 0) {
+        const firstSub = acadList[0].subject;
+        const firstTopic =
+          acadList[0].units?.[0]?.topics?.[0]?.name || "Integration";
+        setPlanSubject(firstSub);
+        setPlanTopic(firstTopic);
+      }
 
       if (user && user.role === "student") {
         const dashRes = await API.get("/marketplace/dashboard");
-        setTopicProgress(dashRes.data.topicProgress || []);
-        setStudyPlans(dashRes.data.studyPlans || []);
+        const tp = dashRes.data.topicProgress || [];
+        const sp = dashRes.data.studyPlans || [];
+        setTopicProgress(tp);
+        setStudyPlans(sp);
+        syncUserToRegistry({
+          ...user,
+          studentProfile: {
+            ...(user.studentProfile || {}),
+            studentId:
+              dashRes.data.studentId ||
+              user.studentProfile?.studentId ||
+              "LMO-10294",
+            topicProgress: tp,
+            studyPlans: sp,
+          },
+        });
       }
     } catch (err) {
       console.error(err);
@@ -51,7 +75,7 @@ const SyllabusAndDemand = () => {
 
   useEffect(() => {
     loadData();
-  }, [user]);
+  }, [user?._id, user?.role]);
 
   const getTopicStatus = (subject, topicName) => {
     const found = topicProgress.find(
@@ -77,6 +101,14 @@ const SyllabusAndDemand = () => {
         demandType: "Topic Demand",
       });
       setTopicProgress(res.data.topicProgress);
+      syncUserToRegistry({
+        ...user,
+        studentProfile: {
+          ...(user.studentProfile || {}),
+          topicProgress: res.data.topicProgress,
+          studyPlans,
+        },
+      });
       if (status === "not_clear") {
         setMessage(
           `Marked "${topicName}" as Not Clear! Recorded in Student Demand & activated Class Recommendations.`
@@ -105,6 +137,14 @@ const SyllabusAndDemand = () => {
         startDate: planDate,
       });
       setStudyPlans(res.data);
+      syncUserToRegistry({
+        ...user,
+        studentProfile: {
+          ...(user.studentProfile || {}),
+          topicProgress,
+          studyPlans: res.data,
+        },
+      });
       setMessage(
         `Generated 1–4–7 Study Rule schedule for "${planTopic}" (Day 1 Learn, Day 4 Review, Day 7 Recall/Test)!`
       );
@@ -425,22 +465,60 @@ const SyllabusAndDemand = () => {
             onSubmit={handleCreateStudyPlan}
             className="grid grid-cols-1 sm:grid-cols-5 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200"
           >
-            <input
-              type="text"
-              required
+            <select
               value={planSubject}
-              onChange={(e) => setPlanSubject(e.target.value)}
-              placeholder="Subject (e.g. Physics)"
+              onChange={(e) => {
+                const newSub = e.target.value;
+                setPlanSubject(newSub);
+                const matchedSub = hierarchy.find((h) => h.subject === newSub);
+                const firstTopic =
+                  matchedSub?.units?.[0]?.topics?.[0]?.name || "";
+                setPlanTopic(firstTopic);
+              }}
               className="text-xs border border-slate-300 rounded-lg p-2.5 bg-white"
-            />
-            <input
-              type="text"
-              required
+            >
+              {hierarchy.length === 0 ? (
+                <option value="Combined Mathematics">
+                  Combined Mathematics
+                </option>
+              ) : (
+                hierarchy.map((h) => (
+                  <option key={h._id} value={h.subject}>
+                    {h.subject} ({h.grade})
+                  </option>
+                ))
+              )}
+            </select>
+
+            <select
               value={planTopic}
               onChange={(e) => setPlanTopic(e.target.value)}
-              placeholder="Topic (e.g. Doppler Effect)"
               className="text-xs border border-slate-300 rounded-lg p-2.5 bg-white"
-            />
+            >
+              {(() => {
+                const matchedSub = hierarchy.find(
+                  (h) => h.subject === planSubject
+                );
+                const topicsList =
+                  matchedSub?.units?.flatMap((u) =>
+                    (u.topics || []).map((t) => ({
+                      unitTitle: u.title,
+                      name: t.name,
+                    }))
+                  ) || [];
+
+                if (topicsList.length === 0) {
+                  return <option value={planTopic}>{planTopic}</option>;
+                }
+
+                return topicsList.map((t, idx) => (
+                  <option key={idx} value={t.name}>
+                    {t.name} ({t.unitTitle})
+                  </option>
+                ));
+              })()}
+            </select>
+
             <select
               value={planSlot}
               onChange={(e) => setPlanSlot(e.target.value)}

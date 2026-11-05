@@ -12,6 +12,7 @@ import {
   CreditCard,
   Send,
   Star,
+  Users,
 } from "lucide-react";
 
 const TIME_RANGES = [
@@ -590,22 +591,24 @@ const BookingsAndChat = () => {
                         </h3>
                       </div>
 
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                          b.status === "Confirmed"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : b.status === "Completed"
-                            ? "bg-slate-100 text-slate-800 border border-slate-300"
-                            : b.status === "Teacher Accepted"
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
-                        }`}
-                      >
-                        {b.status}
-                      </span>
+                      {b.status && b.status !== "Teacher Found" && (
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                            b.status === "Confirmed"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : b.status === "Completed"
+                              ? "bg-slate-100 text-slate-800 border border-slate-300"
+                              : b.status === "Teacher Accepted"
+                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              : "bg-amber-50 text-amber-700 border border-amber-200"
+                          }`}
+                        >
+                          {b.status}
+                        </span>
+                      )}
                     </div>
 
-                    <div className="flex flex-wrap gap-4 text-xs text-slate-600">
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-slate-500" />
                         {b.preferredDate} ({b.preferredTimeRange})
@@ -617,9 +620,21 @@ const BookingsAndChat = () => {
                       <span className="font-bold text-slate-900">
                         Fee: LKR {b.fee || b.budget || 1500}
                       </span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-brand-blue bg-brand-blue/10 px-2.5 py-0.5 rounded-full">
+                        <Users className="w-3.5 h-3.5" />
+                        {b.bookingType === "Group Enrollment"
+                          ? `${
+                              b.classSession?.enrolledStudents?.length || 1
+                            }${
+                              b.classSession?.maxStudents
+                                ? ` / ${b.classSession.maxStudents}`
+                                : ""
+                            } Enrolled`
+                          : "1 Enrolled (1-to-1)"}
+                      </span>
                     </div>
 
-                    <div className="text-xs text-slate-500 flex justify-between items-center pt-2 border-t border-slate-100">
+                    <div className="text-xs text-slate-500 flex flex-wrap justify-between items-center gap-2 pt-2 border-t border-slate-100">
                       <span>
                         Student:{" "}
                         <strong>
@@ -632,6 +647,18 @@ const BookingsAndChat = () => {
                         <strong>
                           {b.teacher?.name || "Matching Verified Teacher..."}
                         </strong>
+                      </span>
+                      <span className="font-semibold text-slate-700">
+                        {b.bookingType === "Group Enrollment"
+                          ? `${
+                              b.classSession?.enrolledStudents?.length || 1
+                            } ${
+                              (b.classSession?.enrolledStudents?.length || 1) ===
+                              1
+                                ? "Person"
+                                : "People"
+                            } Enrolled`
+                          : "1 Person Enrolled"}
                       </span>
                     </div>
 

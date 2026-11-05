@@ -71,6 +71,10 @@ const bookingRequestSchema = new mongoose.Schema(
       ],
       default: "Pending",
     },
+    lockedByAdmin: {
+      type: Boolean,
+      default: false,
+    },
     meetingRoomId: {
       type: String,
       default: "",

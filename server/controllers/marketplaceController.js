@@ -9,7 +9,7 @@ import { ensureProductionSampleData } from "../utils/seedProductionData.js";
 export const getClasses = async (req, res) => {
   try {
     const { classType, subject, grade, medium, topicName } = req.query;
-    const filter = { status: { $ne: "Cancelled" } };
+    const filter = {};
 
     if (classType && classType !== "All") filter.classType = classType;
     if (subject) filter.subject = new RegExp(subject, "i");
@@ -113,6 +113,15 @@ export const enrollInClass = async (req, res) => {
         .json({ message: "You are already enrolled in this class" });
     }
 
+    if (
+      classSession.status &&
+      !["Published", "Ongoing"].includes(classSession.status)
+    ) {
+      return res.status(400).json({
+        message: `Enrollment closed: This class status is "${classSession.status}" (controlled by Admin).`,
+      });
+    }
+
     if (classSession.enrolledStudents.length >= classSession.maxStudents) {
       return res.status(400).json({ message: "Class is full" });
     }
@@ -122,7 +131,10 @@ export const enrollInClass = async (req, res) => {
     const platformCommission = fee - teacherEarning;
 
     classSession.enrolledStudents.push(req.user._id);
-    if (classSession.enrolledStudents.length >= classSession.maxStudents) {
+    if (
+      !classSession.lockedByAdmin &&
+      classSession.enrolledStudents.length >= classSession.maxStudents
+    ) {
       classSession.status = "Full";
     }
     await classSession.save();
@@ -227,7 +239,7 @@ export const createBookingRequest = async (req, res) => {
       paymentPreference: paymentPreference || "Per Class",
       budget: Number(budget) || 1500,
       fee: Number(budget) || 1500,
-      status: matchedTeacherId ? "Teacher Found" : "Pending",
+      status: "Pending",
     });
 
     const populated = await BookingRequest.findById(booking._id)
@@ -258,7 +270,7 @@ export const getMyBookings = async (req, res) => {
     const bookings = await BookingRequest.find(query)
       .populate("student", "name email studentProfile")
       .populate("teacher", "name email teacherProfile")
-      .populate("classSession", "title classType posterUrl")
+      .populate("classSession", "title classType posterUrl enrolledStudents maxStudents")
       .sort({ createdAt: -1 });
 
     res.status(200).json(bookings);
@@ -275,6 +287,13 @@ export const acceptBookingRequest = async (req, res) => {
 
     if (!booking) {
       return res.status(404).json({ message: "Booking request not found" });
+    }
+
+    if (booking.lockedByAdmin && req.user.role !== "admin") {
+      return res.status(403).json({
+        message:
+          "This class/booking status was set by Admin and cannot be reverted by users.",
+      });
     }
 
     booking.teacher = req.user._id;
@@ -365,7 +384,8 @@ export const sendBookingMessage = async (req, res) => {
 
     const populated = await BookingRequest.findById(booking._id)
       .populate("student", "name email studentProfile")
-      .populate("teacher", "name email teacherProfile");
+      .populate("teacher", "name email teacherProfile")
+      .populate("classSession", "title classType posterUrl enrolledStudents maxStudents");
 
     res.status(200).json(populated);
   } catch (error) {
@@ -381,6 +401,13 @@ export const completeAndRateBooking = async (req, res) => {
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.lockedByAdmin && req.user.role !== "admin") {
+      return res.status(403).json({
+        message:
+          "This class/booking status was set by Admin and cannot be reverted by users.",
+      });
     }
 
     booking.status = "Completed";
@@ -412,7 +439,8 @@ export const completeAndRateBooking = async (req, res) => {
 
     const populated = await BookingRequest.findById(booking._id)
       .populate("student", "name email studentProfile")
-      .populate("teacher", "name email teacherProfile");
+      .populate("teacher", "name email teacherProfile")
+      .populate("classSession", "title classType posterUrl enrolledStudents maxStudents");
 
     res.status(200).json(populated);
   } catch (error) {
@@ -652,30 +680,48 @@ export const getDashboardSummary = async (req, res) => {
       role: "teacher",
       "teacherProfile.verificationStatus": "pending",
     });
-    const allBookings = await BookingRequest.find({
-      status: { $in: ["Confirmed", "Completed"] },
-    });
-    const totalRevenue = allBookings.reduce((sum, b) => sum + (b.fee || 0), 0);
-    const platformCommission = allBookings.reduce(
+    const allBookings = await BookingRequest.find({})
+      .populate("student", "name email phone studentProfile")
+      .populate("teacher", "name email phone teacherProfile")
+      .populate("classSession", "title classType fee")
+      .sort({ createdAt: -1 });
+    const paidBookings = allBookings.filter((b) =>
+      ["Confirmed", "Completed"].includes(b.status)
+    );
+    const totalRevenue = paidBookings.reduce((sum, b) => sum + (b.fee || 0), 0);
+    const platformCommission = paidBookings.reduce(
       (sum, b) => sum + (b.platformCommission || 0),
       0
     );
-    const teacherPayouts = allBookings.reduce(
+    const teacherPayouts = paidBookings.reduce(
       (sum, b) => sum + (b.teacherEarning || 0),
       0
     );
+
+    const [studentsList, teachersList, allAdminClasses] = await Promise.all([
+      User.find({ role: "student" }).select("-password").sort({ createdAt: -1 }),
+      User.find({ role: "teacher" }).select("-password").sort({ createdAt: -1 }),
+      ClassSession.find({})
+        .populate("teacher", "name email teacherProfile")
+        .sort({ createdAt: -1 }),
+    ]);
 
     return res.status(200).json({
       role: "admin",
       totalStudents,
       totalTeachers,
       pendingTeachers,
-      totalClasses: allClasses.length,
+      totalClasses: allAdminClasses.length,
       totalDemands: allDemands.length,
       totalRevenue,
       platformCommission,
       teacherPayouts,
       recentDemands: allDemands.slice(0, 5),
+      transactions: paidBookings,
+      allBookings,
+      classes: allAdminClasses,
+      teachers: teachersList,
+      students: studentsList,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

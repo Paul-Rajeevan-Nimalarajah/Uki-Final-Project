@@ -1,59 +1,53 @@
 import express from 'express'
 import multer from 'multer'
-import {v2 as cloudinary} from 'cloudinary'
-import { protect } from '../middleware/authMiddleware.js'
+import path from 'path'
+import fs from 'fs'
 
 const router = express.Router()
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+const uploadsDir = path.join(process.cwd(), 'uploads')
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true })
+}
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true })
+        }
+        cb(null, uploadsDir)
+    },
+    filename: (req, file, cb) => {
+        const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_')
+        cb(null, `${Date.now()}-${safeName}`)
+    }
 })
 
-const storage = multer.memoryStorage()
 const upload = multer({
     storage,
-    limits: { fileSize: 10 * 1024 * 1024},
-    fileFilter: (req,file,cb) => {
-        if (
-            file.mimetype === 'application/pdf' ||
-            file.mimetype.startsWith('image/')
-        ){
-            cb(null,true)
-        }else{
-            cb(new Error('Only PDF and image files are allowed!'),false)
-        }
-    }
+    limits: { fileSize: 15 * 1024 * 1024 }
 })
 
-router.post('/',protect,upload.single('file'),async(req,res) => {
-    try{
-        if (!req.file) {
-            return res.status(400).json({message: 'No file upload'})
+router.post('/', (req, res) => {
+    upload.single('file')(req, res, async (err) => {
+        if (err) {
+            return res.status(400).json({ message: err.message || 'File upload error' })
         }
 
-        const uploadStream = cloudinary.uploader.upload_stream(
-            {
-                folder: 'learnymo_verifications',
-                resource_type: 'auto',
-            },
-            (error,result) => {
-                if (error) {
-                    return res.status(500).json({message:error.message})
-                }
-                res.status(200).json({
-                    url: result.secure_url,
-                    format: result.format,
-                    originalName: req.file.originalname
-                })
-            }
-        )
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' })
+        }
 
-        uploadStream.end(req.file.buffer)
-    } catch (error) {
-        res.status(500).json({message: error.message})
-    }
+        const protocol = req.protocol || 'http'
+        const host = req.get('host') || `localhost:${process.env.PORT || 5000}`
+        const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`
+
+        return res.status(200).json({
+            url: fileUrl,
+            format: req.file.mimetype,
+            originalName: req.file.originalname
+        })
+    })
 })
 
 export default router;

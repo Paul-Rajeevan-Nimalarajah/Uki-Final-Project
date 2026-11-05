@@ -382,7 +382,7 @@ export const ensureProductionSampleData = async () => {
           paymentPreference: "Per Class",
           budget: 1500,
           fee: 1500,
-          status: "Teacher Found",
+          status: "Pending",
           messages: [],
         },
         {

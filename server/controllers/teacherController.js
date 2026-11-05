@@ -34,10 +34,16 @@ export const updateTeacherProfile = async (req,res) => {
 
         if (qualifications) user.teacherProfile.qualifications = qualifications
         if (subjects) user.teacherProfile.subjects = subjects
-        if (verificationDocuments) user.teacherProfile.verificationDocuments = verificationDocuments
-
-        if (verificationDocuments && verificationDocuments.length > 0 && user.teacherProfile.verificationStatus === 'rejected'){
-            user.teacherProfile.verificationStatus = 'pending'
+        if (verificationDocuments !== undefined) {
+            const validDocs = Array.isArray(verificationDocuments)
+                ? verificationDocuments.filter(Boolean)
+                : []
+            if (validDocs.length === 0) {
+                return res.status(400).json({
+                    message: 'At least one verification document is required for teacher verification.'
+                })
+            }
+            user.teacherProfile.verificationDocuments = validDocs
         }
 
         const updatedUser = await user.save()

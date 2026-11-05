@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import AdminAcademic from "./pages/AdminAcademic";
 import TeacherProfileSettings from "./pages/TeacherProfileSettings";
+import StudentProfileSettings from "./pages/StudentProfileSettings";
 import AdminTeacherVerification from "./pages/AdminTeacherVerification";
 import FindClasses from "./pages/FindClasses";
 import BookingsAndChat from "./pages/BookingsAndChat";
@@ -265,13 +266,28 @@ const HomeLanding = () => {
   );
 };
 
-const RoleRoute = ({ allowedRoles, allowGuest = false, children }) => {
+const isTeacherVerified = (user) => {
+  if (!user || user.role !== "teacher") return true;
+  const status =
+    user.teacherProfile?.verificationStatus || user.verificationStatus || "pending";
+  return status === "approved";
+};
+
+const RoleRoute = ({
+  allowedRoles,
+  allowGuest = false,
+  allowUnverifiedTeacher = false,
+  children,
+}) => {
   const { user } = useAuth();
   if (!user) {
     return allowGuest ? children : <Navigate to="/login" replace />;
   }
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/dashboard" replace />;
+  }
+  if (user.role === "teacher" && !allowUnverifiedTeacher && !isTeacherVerified(user)) {
+    return <Navigate to="/teacher/profile" replace />;
   }
   return children;
 };
@@ -328,7 +344,14 @@ function App() {
                   </RoleRoute>
                 }
               />
-              <Route path="/dashboard" element={<RoleDashboard />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <RoleRoute allowedRoles={["student", "teacher", "admin"]}>
+                    <RoleDashboard />
+                  </RoleRoute>
+                }
+              />
               <Route
                 path="/admin/academic"
                 element={
@@ -340,8 +363,19 @@ function App() {
               <Route
                 path="/teacher/profile"
                 element={
-                  <RoleRoute allowedRoles={["teacher"]}>
+                  <RoleRoute
+                    allowedRoles={["teacher"]}
+                    allowUnverifiedTeacher={true}
+                  >
                     <TeacherProfileSettings />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="/student/profile"
+                element={
+                  <RoleRoute allowedRoles={["student"]}>
+                    <StudentProfileSettings />
                   </RoleRoute>
                 }
               />

@@ -40,9 +40,20 @@ const Navbar = () => {
 
     // 3. Teacher Role
     if (user.role === "teacher") {
+      const verificationStatus =
+        user.teacherProfile?.verificationStatus ||
+        user.verificationStatus ||
+        "pending";
+
+      if (verificationStatus !== "approved") {
+        return [
+          { to: "/teacher/profile", label: "Verification & Profile" },
+        ];
+      }
+
       return [
         { to: "/dashboard", label: "Dashboard" },
-        { to: "/classes", label: "My Classes" },
+        { to: "/classes", label: "Classes" },
         { to: "/bookings", label: "Student Requests" },
         { to: "/syllabus", label: "Topic Demand" },
         { to: "/teacher/profile", label: "My Profile" },
@@ -55,6 +66,7 @@ const Navbar = () => {
       { to: "/classes", label: "Find Classes" },
       { to: "/bookings", label: "1-to-1 & Bookings" },
       { to: "/syllabus", label: "Syllabus & Study Plan" },
+      { to: "/student/profile", label: "My Profile" },
     ];
   };
 
@@ -97,7 +109,14 @@ const Navbar = () => {
             {user ? (
               <div className="flex items-center gap-2 sm:gap-3">
                 <Link
-                  to="/dashboard"
+                  to={
+                    user.role === "teacher" &&
+                    (user.teacherProfile?.verificationStatus ||
+                      user.verificationStatus ||
+                      "pending") !== "approved"
+                      ? "/teacher/profile"
+                      : "/dashboard"
+                  }
                   className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full transition-colors"
                 >
                   <UserIcon className="w-4 h-4 text-slate-600" />
@@ -107,6 +126,14 @@ const Navbar = () => {
                   <span className="text-[10px] uppercase tracking-wider font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">
                     {user.role}
                   </span>
+                  {user.role === "teacher" &&
+                    (user.teacherProfile?.verificationStatus ||
+                      user.verificationStatus ||
+                      "pending") !== "approved" && (
+                      <span className="text-[10px] uppercase tracking-wider font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+                        Unverified
+                      </span>
+                    )}
                 </Link>
                 <button
                   onClick={handleLogout}

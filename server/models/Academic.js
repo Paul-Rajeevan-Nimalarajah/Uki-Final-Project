@@ -9,6 +9,10 @@ const topicSchema = new mongoose.Schema({
     desciption: {
         type: String,
         default: ''
+    },
+    description: {
+        type: String,
+        default: ''
     }
 })
 

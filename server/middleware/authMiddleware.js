@@ -19,6 +19,12 @@ export const protect = async (req, res, next) => {
                 return res.status(401).json({message: 'User no longer exists'})
             }
 
+            if (req.user.accountStatus === 'suspended') {
+                return res.status(403).json({
+                    message: 'Your account access has been suspended by an Administrator.'
+                })
+            }
+
             next()
         }catch(error){
             return res.status(401).json({message:'Not authorized, toke failed'})
@@ -39,4 +45,18 @@ export const authorize = (...roles)=>{
         }
         next()
     }
+}
+
+export const requireVerifiedTeacher = (req, res, next) => {
+    if (
+        req.user &&
+        req.user.role === 'teacher' &&
+        req.user.teacherProfile?.verificationStatus !== 'approved'
+    ) {
+        return res.status(403).json({
+            message:
+                'Access restricted: Your teacher profile and verification documents must be verified and approved by an Admin before you can access platform features.',
+        })
+    }
+    next()
 }

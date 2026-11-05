@@ -89,8 +89,20 @@ const classSessionSchema = new mongoose.Schema(
     seriesItems: [{ type: String }],
     status: {
       type: String,
-      enum: ["Draft", "Published", "Full", "Ongoing", "Completed", "Cancelled"],
+      enum: [
+        "Draft",
+        "Published",
+        "Full",
+        "Ongoing",
+        "Completed",
+        "Cancelled",
+        "Suspended",
+      ],
       default: "Published",
+    },
+    lockedByAdmin: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

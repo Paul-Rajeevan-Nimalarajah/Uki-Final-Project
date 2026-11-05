@@ -1,6 +1,8 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
+import path from 'path'
+import fs from 'fs'
 import { connectDB } from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
 import academicRoutes from './routes/academicRoutes.js'
@@ -14,9 +16,16 @@ dotenv.config()
 
 const app = express()
 
+const uploadsDir = path.join(process.cwd(), 'uploads')
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true })
+}
+
 app.use(cors())
 
-app.use(express.json())
+app.use(express.json({ limit: '25mb' }))
+app.use(express.urlencoded({ extended: true, limit: '25mb' }))
+app.use('/uploads', express.static(uploadsDir))
 app.use('/api/auth',authRoutes)
 app.use('/api/academic',academicRoutes)
 app.use('/api/teachers',teacherRoutes)

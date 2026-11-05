@@ -26,6 +26,16 @@ const userSchema = new mongoose.Schema(
             enum:['student','teacher','admin'],
             default:'student'
         },
+        accountStatus: {
+            type: String,
+            enum: ['active', 'suspended'],
+            default: 'active'
+        },
+        permissions: {
+            canCreateClasses: { type: Boolean, default: true },
+            canBookClasses: { type: Boolean, default: true },
+            canChat: { type: Boolean, default: true }
+        },
         phone:{
             type:String,
             trim:true
