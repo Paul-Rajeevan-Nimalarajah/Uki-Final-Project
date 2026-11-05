@@ -80,22 +80,22 @@ const RoleDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner + 1-Click Assessment Demo Seeder */}
-      <div className="bg-gradient-to-r from-slate-900 via-brand-blue to-brand-teal rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row justify-between md:items-center gap-4">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase bg-white/20">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
               {user.role} Portal
             </span>
             {stats.studentId && (
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-black/30">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-slate-100 text-slate-600 border border-slate-200">
                 Student ID: {stats.studentId}
               </span>
             )}
           </div>
-          <h1 className="text-2xl font-extrabold mt-1">
+          <h1 className="text-2xl font-extrabold text-slate-900 mt-1">
             Welcome back, {user.name}
           </h1>
-          <p className="text-xs text-white/80">
+          <p className="text-xs text-slate-500">
             Your Topic • Your Time • Your Teacher — Complete MVP Overview
           </p>
         </div>
@@ -103,13 +103,13 @@ const RoleDashboard = () => {
         <button
           onClick={handleSeedDemo}
           disabled={seeding}
-          className="flex items-center gap-2 px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl shadow-sm transition-all shrink-0"
+          className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl shadow-sm transition-all shrink-0"
         >
           <Sparkles className="w-4 h-4" />
           <span>
             {seeding
               ? "Seeding Demo Data..."
-              : "⚡ Load 1-Click Assessment Demo Data"}
+              : "Load Assessment Demo Data"}
           </span>
         </button>
       </div>

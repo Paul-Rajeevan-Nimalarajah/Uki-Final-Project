@@ -18,13 +18,7 @@ import SyllabusAndDemand from "./pages/SyllabusAndDemand";
 import RoleDashboard from "./pages/RoleDashboard";
 import {
   Sparkles,
-  BookOpen,
-  Flame,
-  ShieldCheck,
   CheckCircle2,
-  Video,
-  Calendar,
-  Star,
   ArrowRight,
   GraduationCap,
   Briefcase,
@@ -35,57 +29,57 @@ const HomeLanding = () => {
   const { user } = useAuth();
 
   return (
-    <div className="space-y-12">
-      {/* 1. HERO SECTION (Section 3 of Specification) */}
-      <div className="bg-gradient-to-br from-slate-900 via-brand-blue to-teal-800 rounded-3xl p-8 sm:p-14 text-white shadow-lg text-center space-y-6">
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider bg-white/15 backdrop-blur-sm text-teal-200 px-3.5 py-1.5 rounded-full border border-white/20">
-          <Sparkles className="w-3.5 h-3.5" />
+    <div className="space-y-10">
+      {/* 1. CLEAN WHITE HERO SECTION */}
+      <div className="bg-white rounded-2xl p-8 sm:p-12 border border-slate-200 shadow-sm text-center space-y-5">
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider bg-slate-100 text-slate-700 px-3.5 py-1.5 rounded-full border border-slate-200">
+          <Sparkles className="w-3.5 h-3.5 text-brand-blue" />
           Sri Lanka&apos;s Topic-First Online Learning Platform
         </span>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight max-w-3xl mx-auto leading-tight">
-          Your Topic. Your Time. Your Teacher.
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight max-w-3xl mx-auto">
+          Your Topic • Your Time • Your Teacher
         </h1>
 
-        <p className="text-slate-200 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+        <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
           Learn exactly what you need — a specific <strong>Topic</strong>, a
           complete <strong>Unit</strong>, a <strong>Past Paper</strong>, or a{" "}
           <strong>Full Subject</strong> — with verified Sri Lankan teachers at a
           time that works for you.
         </p>
 
-        {/* 4 Official Main Hero Buttons from Spec Section 3 */}
+        {/* Main Hero Buttons */}
         <div className="flex flex-wrap justify-center gap-3 pt-2">
           <button
             onClick={() => navigate("/bookings?tab=request")}
-            className="px-6 py-3 bg-brand-teal hover:bg-teal-500 text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2"
+            className="px-5 py-2.5 bg-brand-blue hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all flex items-center gap-2"
           >
             <span>Book a Class (1-to-1)</span>
             <ArrowRight className="w-4 h-4" />
           </button>
           <button
             onClick={() => navigate("/classes")}
-            className="px-6 py-3 bg-white hover:bg-slate-100 text-slate-900 text-sm font-bold rounded-xl shadow-md transition-all"
+            className="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-sm font-semibold rounded-xl transition-all"
           >
             Find a Class
           </button>
           <button
             onClick={() => navigate("/register")}
-            className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/25 text-white text-sm font-semibold rounded-xl transition-all"
+            className="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-sm font-semibold rounded-xl transition-all"
           >
             Become a Teacher
           </button>
           {!user ? (
             <button
               onClick={() => navigate("/login")}
-              className="px-6 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 text-sm font-bold rounded-xl shadow-md transition-all"
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-semibold rounded-xl transition-all"
             >
               Login
             </button>
           ) : (
             <button
               onClick={() => navigate("/dashboard")}
-              className="px-6 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 text-sm font-bold rounded-xl shadow-md transition-all"
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-semibold rounded-xl transition-all"
             >
               Go to My Dashboard
             </button>
@@ -93,42 +87,40 @@ const HomeLanding = () => {
         </div>
 
         {/* Platform Highlights */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-white/15 max-w-4xl mx-auto text-left">
-          <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-sm">
-            <p className="text-lg font-extrabold text-amber-300">7 Class Types</p>
-            <p className="text-xs text-slate-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-slate-100 max-w-4xl mx-auto text-left">
+          <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
+            <p className="text-sm font-bold text-slate-900">7 Class Types</p>
+            <p className="text-xs text-slate-500 mt-0.5">
               1-to-1, Group, Topic, Unit, Paper, Full Subject &amp; Series
             </p>
           </div>
-          <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-sm">
-            <p className="text-lg font-extrabold text-teal-300">
+          <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
+            <p className="text-sm font-bold text-slate-900">
               &quot;Not Clear&quot; Match
             </p>
-            <p className="text-xs text-slate-200">
+            <p className="text-xs text-slate-500 mt-0.5">
               Mark any syllabus topic &quot;Not Clear&quot; to trigger teacher classes
             </p>
           </div>
-          <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-sm">
-            <p className="text-lg font-extrabold text-white">1–4–7 Study Rule</p>
-            <p className="text-xs text-slate-200">
+          <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
+            <p className="text-sm font-bold text-slate-900">1–4–7 Study Rule</p>
+            <p className="text-xs text-slate-500 mt-0.5">
               Day 1 Learn • Day 4 Review • Day 7 Recall &amp; Test
             </p>
           </div>
-          <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-sm">
-            <p className="text-lg font-extrabold text-emerald-300">
-              80% / 20% Split
-            </p>
-            <p className="text-xs text-slate-200">
+          <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
+            <p className="text-sm font-bold text-slate-900">80% / 20% Split</p>
+            <p className="text-xs text-slate-500 mt-0.5">
               80% directly to verified teachers • 3 Months Free Student Membership
             </p>
           </div>
         </div>
       </div>
 
-      {/* 2. HOW IT WORKS (End-to-End Business Loop) */}
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-blue">
+      {/* 2. HOW IT WORKS */}
+      <div className="space-y-5">
+        <div className="text-center space-y-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
             How LearnyMo Works
           </span>
           <h2 className="text-2xl font-extrabold text-slate-900">
@@ -138,7 +130,7 @@ const HomeLanding = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-            <span className="w-8 h-8 rounded-lg bg-brand-blue text-white font-bold text-xs flex items-center justify-center">
+            <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-800 border border-slate-200 font-bold text-xs flex items-center justify-center">
               01
             </span>
             <h3 className="font-bold text-slate-900">
@@ -151,7 +143,7 @@ const HomeLanding = () => {
           </div>
 
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-            <span className="w-8 h-8 rounded-lg bg-brand-teal text-white font-bold text-xs flex items-center justify-center">
+            <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-800 border border-slate-200 font-bold text-xs flex items-center justify-center">
               02
             </span>
             <h3 className="font-bold text-slate-900">
@@ -164,7 +156,7 @@ const HomeLanding = () => {
           </div>
 
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-            <span className="w-8 h-8 rounded-lg bg-purple-600 text-white font-bold text-xs flex items-center justify-center">
+            <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-800 border border-slate-200 font-bold text-xs flex items-center justify-center">
               03
             </span>
             <h3 className="font-bold text-slate-900">
@@ -177,7 +169,7 @@ const HomeLanding = () => {
           </div>
 
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-            <span className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">
+            <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-800 border border-slate-200 font-bold text-xs flex items-center justify-center">
               04
             </span>
             <h3 className="font-bold text-slate-900">
@@ -192,15 +184,15 @@ const HomeLanding = () => {
         </div>
       </div>
 
-      {/* 3. FOR STUDENTS & FOR TEACHERS (Section 3 Public Pages) */}
+      {/* 3. FOR STUDENTS & FOR TEACHERS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-7 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-brand-blue/10 text-brand-blue flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-800 border border-slate-200 flex items-center justify-center">
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs font-bold uppercase text-brand-blue">
+              <span className="text-xs font-bold uppercase text-slate-500">
                 For Students
               </span>
               <h3 className="text-lg font-bold text-slate-900">
@@ -210,21 +202,21 @@ const HomeLanding = () => {
           </div>
           <ul className="space-y-2 text-xs text-slate-600">
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-brand-blue shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0" />
               <span>
                 Track your O/L &amp; A/L syllabus with{" "}
                 <strong>Not Started / Not Clear / Clear</strong> statuses.
               </span>
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-brand-blue shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0" />
               <span>
                 Get automatic class recommendations whenever a teacher creates a
                 session for your <strong>Not Clear</strong> topics.
               </span>
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-brand-blue shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0" />
               <span>
                 Built-in <strong>1–4–7 Study Planner</strong> for scientific exam
                 revision.
@@ -241,11 +233,11 @@ const HomeLanding = () => {
 
         <div className="bg-white p-7 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-brand-teal/10 text-brand-teal flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-800 border border-slate-200 flex items-center justify-center">
               <Briefcase className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs font-bold uppercase text-brand-teal">
+              <span className="text-xs font-bold uppercase text-slate-500">
                 For Teachers
               </span>
               <h3 className="text-lg font-bold text-slate-900">
@@ -255,21 +247,21 @@ const HomeLanding = () => {
           </div>
           <ul className="space-y-2 text-xs text-slate-600">
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-brand-teal shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0" />
               <span>
                 See real-time <strong>Student Demand</strong> (&quot;12 Students
                 Interested in Integration&quot;) before creating a class.
               </span>
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-brand-teal shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0" />
               <span>
                 Accept 1-to-1 requests, publish Topic/Unit/Paper classes, and
                 receive an automatic <strong>80% payout</strong> to your wallet.
               </span>
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-brand-teal shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0" />
               <span>
                 Build your verified profile with separate{" "}
                 <strong>Star Ratings</strong> and{" "}
@@ -279,7 +271,7 @@ const HomeLanding = () => {
           </ul>
           <button
             onClick={() => navigate("/classes")}
-            className="px-4 py-2 bg-brand-teal hover:bg-teal-700 text-white text-xs font-semibold rounded-xl"
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl"
           >
             View Class Marketplace →
           </button>

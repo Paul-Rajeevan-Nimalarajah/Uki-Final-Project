@@ -275,21 +275,21 @@ const FindClasses = () => {
                 key={cls._id}
                 className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden"
               >
-                {/* Class Poster / Gradient Banner */}
-                <div className="h-32 bg-gradient-to-r from-brand-blue via-indigo-600 to-brand-teal p-4 flex flex-col justify-between text-white relative">
+                {/* Clean Header Banner */}
+                <div className="bg-slate-50 border-b border-slate-200 p-4 flex flex-col justify-between gap-3">
                   <div className="flex justify-between items-start">
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white text-slate-700 border border-slate-200">
                       {cls.classType}
                     </span>
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/30">
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-200/70 text-slate-700">
                       {cls.medium} Medium
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs text-white/80 font-medium">
+                    <p className="text-xs text-slate-500 font-medium">
                       {cls.grade} • {cls.subject}
                     </p>
-                    <h3 className="font-bold text-base line-clamp-1">
+                    <h3 className="font-bold text-base text-slate-900 line-clamp-1">
                       {cls.title}
                     </h3>
                   </div>
