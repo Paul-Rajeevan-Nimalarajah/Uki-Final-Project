@@ -2,11 +2,11 @@ import nodemailer from 'nodemailer';
 
 export const sendEmail = async ({ to, subject, html, otpCode }) => {
     const smtpHost = process.env.SMTP_HOST;
-    const smtpPort = Number(process.env.SMTP_PORT) || 587;
+    const smtpPort = Number(process.env.SMTP_PORT) || 465;
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
     const fromName = process.env.FROM_NAME || 'LearnyMo';
-    const fromEmail = process.env.FROM_EMAIL || smtpUser || 'noreply@paulrajeevan.com';
+    const fromEmail = process.env.FROM_EMAIL || 'learnymo@paulrajeevan.com';
 
     // Always log OTP in terminal for convenient local debugging
     if (otpCode) {
@@ -18,28 +18,61 @@ export const sendEmail = async ({ to, subject, html, otpCode }) => {
     }
 
     const isPlaceholder =
-        !smtpHost ||
-        !smtpUser ||
         !smtpPass ||
-        smtpUser.includes('yourname') ||
-        smtpUser.includes('your-email') ||
         smtpPass.includes('xxxx') ||
         smtpPass.includes('your_');
 
     if (isPlaceholder) {
         console.warn(
-            '⚠️ SMTP credentials are not fully configured in server/.env yet. Using console OTP fallback.'
+            '⚠️ SMTP credentials are not configured in server/.env yet. Using console OTP fallback.'
         );
         return { sent: false, devFallback: true };
     }
 
+    // 1. If using a Resend API Key (re_...), use Resend HTTPS API directly (fast & avoids port blocks)
+    if (smtpPass.startsWith('re_')) {
+        try {
+            const response = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${smtpPass}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    from: `${fromName} <${fromEmail}>`,
+                    to: [to],
+                    subject,
+                    html,
+                }),
+            });
+
+            const resData = await response.json();
+            if (response.ok) {
+                console.log(`✅ Email sent via Resend to ${to} (id: ${resData.id})`);
+                return { sent: true, devFallback: false };
+            } else {
+                console.error('❌ Resend API Error:', resData?.message || resData);
+                return {
+                    sent: false,
+                    devFallback: true,
+                    error: resData?.message || 'Resend API rejected the request',
+                };
+            }
+        } catch (err) {
+            console.error('❌ Resend Network Error:', err.message);
+        }
+    }
+
+    // 2. Standard SMTP via Nodemailer
     try {
         const transporter = nodemailer.createTransport({
-            host: smtpHost,
+            host: smtpPass.startsWith('re_') ? 'smtp.resend.com' : smtpHost,
             port: smtpPort,
             secure: smtpPort === 465,
+            connectionTimeout: 8000,
+            greetingTimeout: 8000,
             auth: {
-                user: smtpUser,
+                user: smtpPass.startsWith('re_') ? 'resend' : smtpUser,
                 pass: smtpPass,
             },
         });
@@ -51,6 +84,7 @@ export const sendEmail = async ({ to, subject, html, otpCode }) => {
             html,
         });
 
+        console.log(`✅ Email sent via SMTP to ${to}`);
         return { sent: true, devFallback: false };
     } catch (error) {
         console.error('❌ SMTP Email Error:', error.message);
@@ -86,4 +120,3 @@ export const buildOtpEmailHtml = ({ name, title, subtitle, otpCode, footerNote }
     </div>
     `;
 };
-

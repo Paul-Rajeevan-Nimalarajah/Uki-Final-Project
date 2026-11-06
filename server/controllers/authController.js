@@ -25,8 +25,8 @@ export const registerUser = async (req,res) => {
             verificationDocuments
         } = req.body
 
-        const userExists = await User.findOne({email})
-        if (userExists){
+        const existingUser = await User.findOne({email}).select('+emailVerificationOTP')
+        if (existingUser && (existingUser.isEmailVerified || !existingUser.emailVerificationOTP)){
             return res.status(400).json({message:'User already exists with this email'})
         }
 
@@ -93,7 +93,21 @@ export const registerUser = async (req,res) => {
         userData.emailVerificationOTP = otpCode
         userData.emailVerificationExpires = new Date(Date.now() + 15 * 60 * 1000)
 
-        const user = await User.create(userData)
+        let user
+        if (existingUser) {
+            existingUser.name = userData.name
+            existingUser.password = userData.password
+            existingUser.role = userData.role
+            existingUser.phone = userData.phone
+            if (userData.teacherProfile) existingUser.teacherProfile = userData.teacherProfile
+            if (userData.studentProfile) existingUser.studentProfile = userData.studentProfile
+            existingUser.isEmailVerified = false
+            existingUser.emailVerificationOTP = otpCode
+            existingUser.emailVerificationExpires = userData.emailVerificationExpires
+            user = await existingUser.save()
+        } else {
+            user = await User.create(userData)
+        }
 
         if (user){
             const emailResult = await sendEmail({
@@ -117,11 +131,13 @@ export const registerUser = async (req,res) => {
                 role:user.role,
                 phone: user.phone,
                 isEmailVerified: user.isEmailVerified,
+                requiresEmailVerification: true,
                 teacherProfile: user.teacherProfile,
                 studentProfile: user.studentProfile,
                 verificationStatus: user.role === 'teacher' ? user.teacherProfile?.verificationStatus || 'pending' : undefined,
                 token,
                 emailSent: emailResult.sent,
+                emailError: emailResult.error,
                 devOtp: emailResult.devFallback ? otpCode : undefined
             })
         }else{
@@ -147,18 +163,12 @@ export const verifyEmail = async (req, res) => {
             return res.status(404).json({ message: 'No account found with this email address' })
         }
 
-        if (user.isEmailVerified) {
-            return res.status(200).json({
-                message: 'Email is already verified',
-                isEmailVerified: true
-            })
-        }
-
         if (
-            !user.emailVerificationOTP ||
-            user.emailVerificationOTP !== otp.trim() ||
-            !user.emailVerificationExpires ||
-            user.emailVerificationExpires < new Date()
+            !user.isEmailVerified &&
+            (!user.emailVerificationOTP ||
+                user.emailVerificationOTP !== otp.trim() ||
+                !user.emailVerificationExpires ||
+                user.emailVerificationExpires < new Date())
         ) {
             return res.status(400).json({
                 message: 'Invalid or expired verification code. Please request a new code.'
@@ -170,9 +180,20 @@ export const verifyEmail = async (req, res) => {
         user.emailVerificationExpires = undefined
         await user.save()
 
+        const token = generateToken(res, user._id)
+
         res.status(200).json({
-            message: 'Email verified successfully!',
-            isEmailVerified: true
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            phone: user.phone,
+            isEmailVerified: true,
+            teacherProfile: user.teacherProfile,
+            studentProfile: user.studentProfile,
+            verificationStatus: user.role === 'teacher' ? user.teacherProfile?.verificationStatus || 'pending' : undefined,
+            token,
+            message: 'Email verified successfully!'
         })
     } catch (error) {
         res.status(500).json({ message: error.message })

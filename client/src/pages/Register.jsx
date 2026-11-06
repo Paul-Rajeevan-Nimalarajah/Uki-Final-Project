@@ -27,6 +27,8 @@ const Register = () => {
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [resendingOtp, setResendingOtp] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState("");
+  const [pendingUser, setPendingUser] = useState(null);
+  const [emailErrorNote, setEmailErrorNote] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -47,7 +49,7 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { register, updateUser } = useAuth();
+  const { register, completeVerification } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -156,28 +158,19 @@ const Register = () => {
       };
 
       const regData = await register(submissionData);
-      if (role === "teacher") {
-        if (!regData?.teacherProfile?.verificationDocuments?.length) {
-          try {
-            await API.put("/teachers/profile", {
-              headline: formData.headline,
-              bio: formData.bio,
-              hourlyRate: Number(formData.hourlyRate) || 0,
-              experienceYears: Number(formData.experienceYears) || 0,
-              subjects: submissionData.subjects,
-              qualifications: submissionData.qualifications,
-              verificationDocuments: submissionData.verificationDocuments,
-            });
-          } catch (profileErr) {
-            // ignore if already saved by register endpoint
-          }
-        }
-      }
+      setPendingUser(regData);
       if (regData?.devOtp) {
         setDevOtp(regData.devOtp);
       }
+      if (regData?.emailError) {
+        setEmailErrorNote(regData.emailError);
+      } else {
+        setEmailErrorNote("");
+      }
       setVerifyMessage(
-        `We sent a 6-digit verification code to ${formData.email}. Please enter it below to verify your email.`
+        regData?.emailSent
+          ? `We sent a 6-digit verification code to ${formData.email}. Please enter it below to verify your email.`
+          : `Account created! Enter the 6-digit verification code below to verify ${formData.email}.`
       );
       setVerificationStep(true);
     } catch (err) {
@@ -196,12 +189,17 @@ const Register = () => {
     setVerifyingOtp(true);
 
     try {
-      await API.post("/auth/verify-email", {
+      const res = await API.post("/auth/verify-email", {
         email: formData.email,
         otp,
       });
-      if (updateUser) {
-        updateUser({ isEmailVerified: true });
+      const verifiedUser = {
+        ...(pendingUser || {}),
+        ...(res.data || {}),
+        isEmailVerified: true,
+      };
+      if (completeVerification) {
+        completeVerification(verifiedUser);
       }
       if (role === "teacher") {
         navigate("/teacher/profile");
@@ -267,11 +265,16 @@ const Register = () => {
         {devOtp && (
           <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
             <p className="font-bold">
-              Dev Mode OTP Preview (SMTP not active in .env yet):
+              Verification Code Preview (Email Fallback Mode):
             </p>
-            <p className="font-mono text-base font-extrabold tracking-widest text-brand-blue">
+            <p className="font-mono text-lg font-extrabold tracking-widest text-brand-blue">
               {devOtp}
             </p>
+            {emailErrorNote && (
+              <p className="text-[11px] text-amber-800 pt-1">
+                Note from Email Provider: {emailErrorNote}
+              </p>
+            )}
           </div>
         )}
 

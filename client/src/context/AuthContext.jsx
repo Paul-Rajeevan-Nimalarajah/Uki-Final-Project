@@ -114,10 +114,15 @@ export const AuthProvider = ({children})=>{
             }
         }
         data = applyOverridesToUser(data)
-        localStorage.setItem('userInfo', JSON.stringify(data))
-        syncUserToRegistry(data)
-        setUser(data)
         return data
+    }
+
+    const completeVerification = (verifiedData) => {
+        const finalUser = applyOverridesToUser(verifiedData)
+        localStorage.setItem('userInfo', JSON.stringify(finalUser))
+        syncUserToRegistry(finalUser)
+        setUser(finalUser)
+        return finalUser
     }
 
     const login = async (email,password) => {
@@ -151,7 +156,7 @@ export const AuthProvider = ({children})=>{
     }
 
     return(
-        <AuthContext.Provider value={{user, loading, register, login, logout, refreshUser, updateUser}}>
+        <AuthContext.Provider value={{user, loading, register, completeVerification, login, logout, refreshUser, updateUser}}>
             {children}
         </AuthContext.Provider>
     )
