@@ -17,7 +17,6 @@ const ForgotPassword = () => {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [devOtp, setDevOtp] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -34,16 +33,15 @@ const ForgotPassword = () => {
 
     try {
       const res = await API.post("/auth/forgot-password", { email });
-      setMessage(
-        res.data?.message ||
-          "A 6-digit password reset code has been sent to your email."
-      );
-      if (res.data?.devOtp) {
-        setDevOtp(res.data.devOtp);
+      if (res.data?.emailSent === false && res.data?.emailError) {
+        setError(`Could not send reset email: ${res.data.emailError}`);
       } else {
-        setDevOtp("");
+        setMessage(
+          res.data?.message ||
+            "A 6-digit password reset code has been sent to your email."
+        );
+        setStep(2);
       }
-      setStep(2);
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -61,9 +59,10 @@ const ForgotPassword = () => {
 
     try {
       const res = await API.post("/auth/forgot-password", { email });
-      setMessage("A fresh 6-digit reset code has been sent to your email.");
-      if (res.data?.devOtp) {
-        setDevOtp(res.data.devOtp);
+      if (res.data?.emailSent === false && res.data?.emailError) {
+        setError(`Could not send reset email: ${res.data.emailError}`);
+      } else {
+        setMessage("A fresh 6-digit reset code has been sent to your email.");
       }
     } catch (err) {
       setError(
@@ -100,7 +99,6 @@ const ForgotPassword = () => {
       setMessage(
         res.data?.message || "Password reset successfully! Redirecting to login..."
       );
-      setDevOtp("");
       setTimeout(() => {
         navigate("/login");
       }, 1500);
@@ -134,17 +132,6 @@ const ForgotPassword = () => {
         <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
           <span>{message}</span>
-        </div>
-      )}
-
-      {devOtp && (
-        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
-          <p className="font-bold">
-            Dev Mode OTP Preview (SMTP not active in .env yet):
-          </p>
-          <p className="font-mono text-base font-extrabold tracking-widest text-brand-blue">
-            {devOtp}
-          </p>
         </div>
       )}
 

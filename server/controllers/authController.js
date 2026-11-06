@@ -137,8 +137,7 @@ export const registerUser = async (req,res) => {
                 verificationStatus: user.role === 'teacher' ? user.teacherProfile?.verificationStatus || 'pending' : undefined,
                 token,
                 emailSent: emailResult.sent,
-                emailError: emailResult.error,
-                devOtp: emailResult.devFallback ? otpCode : undefined
+                emailError: emailResult.error
             })
         }else{
             res.status(400).json({message: 'Invalid user data received'})
@@ -236,9 +235,9 @@ export const resendVerificationEmail = async (req, res) => {
         res.status(200).json({
             message: emailResult.sent
                 ? 'A new 6-digit verification code has been sent to your email.'
-                : 'Verification code generated (check server console or dev banner).',
+                : 'Could not send verification email. Please check your SMTP/Resend domain settings.',
             emailSent: emailResult.sent,
-            devOtp: emailResult.devFallback ? otpCode : undefined
+            emailError: emailResult.error
         })
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -278,9 +277,9 @@ export const forgotPassword = async (req, res) => {
         res.status(200).json({
             message: emailResult.sent
                 ? 'A 6-digit password reset code has been sent to your email address.'
-                : 'Password reset code generated! (SMTP not active yet — use the code shown below or in server console).',
+                : 'Could not send reset email. Please check your SMTP/Resend domain settings.',
             emailSent: emailResult.sent,
-            devOtp: emailResult.devFallback ? otpCode : undefined
+            emailError: emailResult.error
         })
     } catch (error) {
         res.status(500).json({ message: error.message })

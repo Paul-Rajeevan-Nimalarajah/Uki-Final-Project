@@ -23,12 +23,10 @@ const Register = () => {
   const [role, setRole] = useState("student");
   const [verificationStep, setVerificationStep] = useState(false);
   const [otp, setOtp] = useState("");
-  const [devOtp, setDevOtp] = useState("");
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [resendingOtp, setResendingOtp] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState("");
   const [pendingUser, setPendingUser] = useState(null);
-  const [emailErrorNote, setEmailErrorNote] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -159,19 +157,13 @@ const Register = () => {
 
       const regData = await register(submissionData);
       setPendingUser(regData);
-      if (regData?.devOtp) {
-        setDevOtp(regData.devOtp);
-      }
-      if (regData?.emailError) {
-        setEmailErrorNote(regData.emailError);
+      if (regData?.emailSent === false && regData?.emailError) {
+        setError(`Could not send email: ${regData.emailError}`);
       } else {
-        setEmailErrorNote("");
+        setVerifyMessage(
+          `We sent a 6-digit verification code to ${formData.email}. Please check your inbox (and spam folder) and enter it below.`
+        );
       }
-      setVerifyMessage(
-        regData?.emailSent
-          ? `We sent a 6-digit verification code to ${formData.email}. Please enter it below to verify your email.`
-          : `Account created! Enter the 6-digit verification code below to verify ${formData.email}.`
-      );
       setVerificationStep(true);
     } catch (err) {
       setError(
@@ -225,11 +217,12 @@ const Register = () => {
       const res = await API.post("/auth/resend-verification", {
         email: formData.email,
       });
-      setVerifyMessage(
-        res.data?.message || "A new 6-digit code has been sent to your email."
-      );
-      if (res.data?.devOtp) {
-        setDevOtp(res.data.devOtp);
+      if (res.data?.emailSent === false && res.data?.emailError) {
+        setError(`Could not send email: ${res.data.emailError}`);
+      } else {
+        setVerifyMessage(
+          res.data?.message || "A new 6-digit code has been sent to your email."
+        );
       }
     } catch (err) {
       setError(
@@ -259,22 +252,6 @@ const Register = () => {
           <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
             <span>{verifyMessage}</span>
-          </div>
-        )}
-
-        {devOtp && (
-          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
-            <p className="font-bold">
-              Verification Code Preview (Email Fallback Mode):
-            </p>
-            <p className="font-mono text-lg font-extrabold tracking-widest text-brand-blue">
-              {devOtp}
-            </p>
-            {emailErrorNote && (
-              <p className="text-[11px] text-amber-800 pt-1">
-                Note from Email Provider: {emailErrorNote}
-              </p>
-            )}
           </div>
         )}
 

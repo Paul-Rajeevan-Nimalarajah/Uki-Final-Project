@@ -1,6 +1,9 @@
 import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
 
 export const sendEmail = async ({ to, subject, html, otpCode }) => {
+    dotenv.config({ override: true });
+
     const smtpHost = process.env.SMTP_HOST;
     const smtpPort = Number(process.env.SMTP_PORT) || 465;
     const smtpUser = process.env.SMTP_USER;
@@ -8,7 +11,7 @@ export const sendEmail = async ({ to, subject, html, otpCode }) => {
     const fromName = process.env.FROM_NAME || 'LearnyMo';
     const fromEmail = process.env.FROM_EMAIL || 'learnymo@paulrajeevan.com';
 
-    // Always log OTP in terminal for convenient local debugging
+    // Log in server terminal only (never sent to frontend UI)
     if (otpCode) {
         console.log(`\n========================================`);
         console.log(`📧 [LearnyMo Email] To: ${to}`);
@@ -23,16 +26,16 @@ export const sendEmail = async ({ to, subject, html, otpCode }) => {
         smtpPass.includes('your_');
 
     if (isPlaceholder) {
-        console.warn(
-            '⚠️ SMTP credentials are not configured in server/.env yet. Using console OTP fallback.'
-        );
-        return { sent: false, devFallback: true };
+        return {
+            sent: false,
+            error: 'SMTP credentials are not configured in server/.env yet.',
+        };
     }
 
-    // 1. If using a Resend API Key (re_...), use Resend HTTPS API directly (fast & avoids port blocks)
+    // 1. If using a Resend API Key (re_...), use Resend HTTPS API directly
     if (smtpPass.startsWith('re_')) {
         try {
-            const response = await fetch('https://api.resend.com/emails', {
+            let response = await fetch('https://api.resend.com/emails', {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${smtpPass}`,
@@ -46,16 +49,41 @@ export const sendEmail = async ({ to, subject, html, otpCode }) => {
                 }),
             });
 
-            const resData = await response.json();
+            let resData = await response.json();
+
+            // If custom domain (e.g. paulrajeevan.com) isn't verified in Resend yet, retry with onboarding@resend.dev
+            if (
+                !response.ok &&
+                resData?.message &&
+                resData.message.toLowerCase().includes('domain is not verified')
+            ) {
+                console.warn(
+                    `⚠️ Domain in ${fromEmail} is not verified in Resend yet. Retrying with onboarding@resend.dev...`
+                );
+                response = await fetch('https://api.resend.com/emails', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${smtpPass}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        from: `${fromName} <onboarding@resend.dev>`,
+                        to: [to],
+                        subject,
+                        html,
+                    }),
+                });
+                resData = await response.json();
+            }
+
             if (response.ok) {
                 console.log(`✅ Email sent via Resend to ${to} (id: ${resData.id})`);
-                return { sent: true, devFallback: false };
+                return { sent: true };
             } else {
                 console.error('❌ Resend API Error:', resData?.message || resData);
                 return {
                     sent: false,
-                    devFallback: true,
-                    error: resData?.message || 'Resend API rejected the request',
+                    error: resData?.message || 'Resend API rejected the email request',
                 };
             }
         } catch (err) {
@@ -85,10 +113,10 @@ export const sendEmail = async ({ to, subject, html, otpCode }) => {
         });
 
         console.log(`✅ Email sent via SMTP to ${to}`);
-        return { sent: true, devFallback: false };
+        return { sent: true };
     } catch (error) {
         console.error('❌ SMTP Email Error:', error.message);
-        return { sent: false, devFallback: true, error: error.message };
+        return { sent: false, error: error.message };
     }
 };
 
