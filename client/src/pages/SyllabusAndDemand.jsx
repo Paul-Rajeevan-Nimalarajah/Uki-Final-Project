@@ -191,30 +191,30 @@ const SyllabusAndDemand = () => {
       )}
 
       {/* SECTION 1: LIVE STUDENT DEMAND BOARD (Role-Specific Buttons) */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-        <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <Flame className="w-5 h-5 text-amber-500" />
             <div>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 {isTeacher
                   ? "Topics Requested by Students ('Not Clear')"
                   : "Live Student Topic Demand & Matching Classes"}
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {isTeacher
                   ? "Click '+ Create Class' on any high-demand topic below to publish a session for waiting students."
                   : "Topics marked 'Not Clear' by students and the classes created by teachers to resolve them."}
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold bg-amber-50 text-amber-800 px-3 py-1 rounded-full border border-amber-200">
+          <span className="text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-800/60">
             {demands.length} Active Topic Demands
           </span>
         </div>
 
         {demands.length === 0 ? (
-          <p className="text-xs text-slate-500 py-4 text-center">
+          <p className="text-xs text-slate-500 dark:text-slate-400 py-4 text-center">
             No active topic demands yet.
           </p>
         ) : (
@@ -224,36 +224,36 @@ const SyllabusAndDemand = () => {
               return (
                 <div
                   key={d._id}
-                  className="rounded-xl p-4 border border-slate-200 bg-slate-50/60 flex flex-col justify-between gap-3 shadow-sm"
+                  className="rounded-xl p-4 border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 flex flex-col justify-between gap-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                 >
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-transparent dark:border-amber-800/50 px-2 py-0.5 rounded">
                         🔥 {count} {count === 1 ? "Student" : "Students"}{" "}
                         Interested
                       </span>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
                         {d.medium} Medium
                       </span>
                     </div>
-                    <p className="text-xs font-semibold text-slate-700">
+                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                       {d.grade} • {d.subject}
                     </p>
-                    <h3 className="font-bold text-slate-900 text-sm">
+                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">
                       {d.unitTitle ? `${d.unitTitle} → ` : ""}
                       {d.topicName}
                     </h3>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       Preferred: {d.preferredTime}
                     </p>
                   </div>
 
                   {d.resolvedByClass ? (
-                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg space-y-1.5">
-                      <p className="text-[11px] font-bold text-emerald-800">
+                    <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-lg space-y-1.5">
+                      <p className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
                         🎯 Matching Class Available!
                       </p>
-                      <p className="text-xs text-emerald-700 line-clamp-1">
+                      <p className="text-xs text-emerald-700 dark:text-emerald-400 line-clamp-1">
                         {d.resolvedByClass.title} (LKR {d.resolvedByClass.fee})
                       </p>
                       {(isStudent || isGuest) && (
@@ -263,7 +263,7 @@ const SyllabusAndDemand = () => {
                               `/classes?topic=${encodeURIComponent(d.topicName)}`
                             )
                           }
-                          className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg"
+                          className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
                         >
                           View Class &amp; Enroll
                         </button>
@@ -286,7 +286,7 @@ const SyllabusAndDemand = () => {
                               )}&demandId=${d._id}`
                             )
                           }
-                          className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-sm"
+                          className="w-full py-2 bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
                         >
                           + Create Class for This Topic
                         </button>
@@ -303,7 +303,7 @@ const SyllabusAndDemand = () => {
                                   )}&topic=${encodeURIComponent(d.topicName)}`
                                 )
                           }
-                          className="w-full py-2 bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg"
+                          className="w-full py-2 bg-white dark:bg-slate-700/80 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs font-semibold rounded-lg transition-colors"
                         >
                           Request 1-to-1 Class
                         </button>
@@ -334,18 +334,18 @@ const SyllabusAndDemand = () => {
             {hierarchy.map((item) => (
               <div
                 key={item._id}
-                className="border border-slate-200 rounded-2xl overflow-hidden"
+                className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900"
               >
-                <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
+                <div className="bg-slate-50 dark:bg-slate-800/80 px-5 py-3 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
                   <div>
-                    <span className="text-xs font-bold uppercase text-slate-600">
+                    <span className="text-xs font-bold uppercase text-slate-600 dark:text-slate-400">
                       {item.grade} • {item.stream}
                     </span>
-                    <h3 className="text-base font-bold text-slate-900">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
                       {item.subject}
                     </h3>
                   </div>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     {item.units?.length || 0} Units
                   </span>
                 </div>
@@ -353,10 +353,10 @@ const SyllabusAndDemand = () => {
                 <div className="p-5 space-y-4">
                   {item.units?.map((unit, uIdx) => (
                     <div key={uIdx} className="space-y-2">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                         Unit {unit.unitNumber}: {unit.title}
                       </h4>
-                      <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl">
+                      <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden">
                         {unit.topics?.map((topic, tIdx) => {
                           const status = getTopicStatus(
                             item.subject,
@@ -365,14 +365,14 @@ const SyllabusAndDemand = () => {
                           return (
                             <div
                               key={tIdx}
-                              className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60"
+                              className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/60 transition-colors"
                             >
                               <div>
-                                <p className="text-sm font-semibold text-slate-800">
+                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
                                   {topic.name}
                                 </p>
                                 {topic.desciption && (
-                                  <p className="text-xs text-slate-500">
+                                  <p className="text-xs text-slate-500 dark:text-slate-400">
                                     {topic.desciption}
                                   </p>
                                 )}
@@ -390,8 +390,8 @@ const SyllabusAndDemand = () => {
                                   }
                                   className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
                                     status === "not_started"
-                                      ? "bg-slate-800 text-white border-slate-800"
-                                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
+                                      ? "bg-slate-800 dark:bg-slate-700 text-white border-slate-800 dark:border-slate-700"
+                                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                                   }`}
                                 >
                                   ⬜ Not Started
@@ -408,7 +408,7 @@ const SyllabusAndDemand = () => {
                                   className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
                                     status === "not_clear"
                                       ? "bg-amber-500 text-white border-amber-500 shadow-sm"
-                                      : "bg-amber-50/60 text-amber-800 border-amber-200 hover:bg-amber-100"
+                                      : "bg-amber-50/60 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 dark:hover:bg-amber-900/40"
                                   }`}
                                 >
                                   🟡 Not Clear
@@ -425,7 +425,7 @@ const SyllabusAndDemand = () => {
                                   className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
                                     status === "clear"
                                       ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                                      : "bg-emerald-50/60 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+                                      : "bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
                                   }`}
                                 >
                                   🟢 Clear
@@ -446,15 +446,15 @@ const SyllabusAndDemand = () => {
 
       {/* STUDENT-ONLY SECTION 3: 1-4-7 STUDY PLANNER RULE */}
       {(isStudent || isGuest) && (
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
-          <div className="border-b border-slate-100 pb-3">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
+          <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
               Scientific Memory Retention
             </span>
-            <h2 className="text-lg font-bold text-slate-900 mt-1">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mt-1">
               LearnyMo 1–4–7 Study Rule Planner
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Automatically schedule <strong>Day 1 (Learn)</strong> →{" "}
               <strong>Day 4 (Review)</strong> →{" "}
               <strong>Day 7 (Recall / Test)</strong> for any topic.
@@ -463,7 +463,7 @@ const SyllabusAndDemand = () => {
 
           <form
             onSubmit={handleCreateStudyPlan}
-            className="grid grid-cols-1 sm:grid-cols-5 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200"
+            className="grid grid-cols-1 sm:grid-cols-5 gap-3 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700"
           >
             <select
               value={planSubject}
@@ -475,7 +475,7 @@ const SyllabusAndDemand = () => {
                   matchedSub?.units?.[0]?.topics?.[0]?.name || "";
                 setPlanTopic(firstTopic);
               }}
-              className="text-xs border border-slate-300 rounded-lg p-2.5 bg-white"
+              className="text-xs border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
             >
               {hierarchy.length === 0 ? (
                 <option value="Combined Mathematics">
@@ -493,7 +493,7 @@ const SyllabusAndDemand = () => {
             <select
               value={planTopic}
               onChange={(e) => setPlanTopic(e.target.value)}
-              className="text-xs border border-slate-300 rounded-lg p-2.5 bg-white"
+              className="text-xs border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
             >
               {(() => {
                 const matchedSub = hierarchy.find(
@@ -522,7 +522,7 @@ const SyllabusAndDemand = () => {
             <select
               value={planSlot}
               onChange={(e) => setPlanSlot(e.target.value)}
-              className="text-xs border border-slate-300 rounded-lg p-2.5 bg-white"
+              className="text-xs border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
             >
               <option value="Morning (6 AM - 8 AM)">Morning (6 AM - 8 AM)</option>
               <option value="Afternoon (2 PM - 4 PM)">
@@ -535,11 +535,11 @@ const SyllabusAndDemand = () => {
               type="date"
               value={planDate}
               onChange={(e) => setPlanDate(e.target.value)}
-              className="text-xs border border-slate-300 rounded-lg p-2.5 bg-white"
+              className="text-xs border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
             />
             <button
               type="submit"
-              className="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-sm"
+              className="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
             >
               Generate 1–4–7 Plan
             </button>
@@ -550,44 +550,44 @@ const SyllabusAndDemand = () => {
               {studyPlans.map((plan, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-xl border border-slate-200 bg-white space-y-3 shadow-sm"
+                  className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/70 space-y-3 shadow-sm"
                 >
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="text-xs font-bold text-slate-600">
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
                         {plan.subject}
                       </span>
-                      <h4 className="font-bold text-sm text-slate-900">
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">
                         {plan.topicName}
                       </h4>
                     </div>
-                    <span className="text-[11px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">
+                    <span className="text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-lg">
                       {plan.preferredSlot}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
-                      <span className="font-bold text-slate-800 block">
+                    <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                      <span className="font-bold text-slate-800 dark:text-slate-200 block">
                         Day 1 • Learn
                       </span>
-                      <span className="text-[11px] text-slate-600">
+                      <span className="text-[11px] text-slate-600 dark:text-slate-400">
                         {plan.day1Learn}
                       </span>
                     </div>
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
-                      <span className="font-bold text-slate-800 block">
+                    <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                      <span className="font-bold text-slate-800 dark:text-slate-200 block">
                         Day 4 • Review
                       </span>
-                      <span className="text-[11px] text-slate-600">
+                      <span className="text-[11px] text-slate-600 dark:text-slate-400">
                         {plan.day4Review}
                       </span>
                     </div>
-                    <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
-                      <span className="font-bold text-slate-800 block">
+                    <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                      <span className="font-bold text-slate-800 dark:text-slate-200 block">
                         Day 7 • Recall/Test
                       </span>
-                      <span className="text-[11px] text-slate-600">
+                      <span className="text-[11px] text-slate-600 dark:text-slate-400">
                         {plan.day7Recall}
                       </span>
                     </div>
