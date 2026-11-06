@@ -1,5 +1,10 @@
 import User from '../models/User.js'
 import generateToken from '../utils/generateToken.js'
+import { sendEmail, buildOtpEmailHtml } from '../utils/sendEmail.js'
+
+const generateSixDigitOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString()
+}
 
 export const registerUser = async (req,res) => {
     try {
@@ -83,9 +88,26 @@ export const registerUser = async (req,res) => {
             }
         }
 
+        const otpCode = generateSixDigitOTP()
+        userData.isEmailVerified = false
+        userData.emailVerificationOTP = otpCode
+        userData.emailVerificationExpires = new Date(Date.now() + 15 * 60 * 1000)
+
         const user = await User.create(userData)
 
         if (user){
+            const emailResult = await sendEmail({
+                to: user.email,
+                subject: 'Verify Your LearnyMo Account — 6-Digit Code',
+                otpCode,
+                html: buildOtpEmailHtml({
+                    name: user.name,
+                    title: 'Verify Your Email Address',
+                    subtitle: 'welcome to LearnyMo! Please enter the 6-digit code below to verify your email address and activate your account.',
+                    otpCode
+                })
+            })
+
             const token = generateToken(res,user._id)
 
             res.status(201).json({
@@ -94,16 +116,237 @@ export const registerUser = async (req,res) => {
                 email:user.email,
                 role:user.role,
                 phone: user.phone,
+                isEmailVerified: user.isEmailVerified,
                 teacherProfile: user.teacherProfile,
                 studentProfile: user.studentProfile,
                 verificationStatus: user.role === 'teacher' ? user.teacherProfile?.verificationStatus || 'pending' : undefined,
-                token
+                token,
+                emailSent: emailResult.sent,
+                devOtp: emailResult.devFallback ? otpCode : undefined
             })
         }else{
             res.status(400).json({message: 'Invalid user data received'})
         }
     } catch (error) {
         res.status(500).json({message:error.message})
+    }
+}
+
+export const verifyEmail = async (req, res) => {
+    try {
+        const { email, otp } = req.body
+        if (!email || !otp) {
+            return res.status(400).json({ message: 'Please provide your email and 6-digit verification code' })
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() }).select(
+            '+emailVerificationOTP +emailVerificationExpires'
+        )
+
+        if (!user) {
+            return res.status(404).json({ message: 'No account found with this email address' })
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(200).json({
+                message: 'Email is already verified',
+                isEmailVerified: true
+            })
+        }
+
+        if (
+            !user.emailVerificationOTP ||
+            user.emailVerificationOTP !== otp.trim() ||
+            !user.emailVerificationExpires ||
+            user.emailVerificationExpires < new Date()
+        ) {
+            return res.status(400).json({
+                message: 'Invalid or expired verification code. Please request a new code.'
+            })
+        }
+
+        user.isEmailVerified = true
+        user.emailVerificationOTP = undefined
+        user.emailVerificationExpires = undefined
+        await user.save()
+
+        res.status(200).json({
+            message: 'Email verified successfully!',
+            isEmailVerified: true
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const resendVerificationEmail = async (req, res) => {
+    try {
+        const { email } = req.body
+        if (!email) {
+            return res.status(400).json({ message: 'Please provide your email address' })
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() })
+        if (!user) {
+            return res.status(404).json({ message: 'No account found with this email address' })
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(400).json({ message: 'This email is already verified' })
+        }
+
+        const otpCode = generateSixDigitOTP()
+        user.emailVerificationOTP = otpCode
+        user.emailVerificationExpires = new Date(Date.now() + 15 * 60 * 1000)
+        await user.save()
+
+        const emailResult = await sendEmail({
+            to: user.email,
+            subject: 'Your New LearnyMo Verification Code',
+            otpCode,
+            html: buildOtpEmailHtml({
+                name: user.name,
+                title: 'Verify Your Email Address',
+                subtitle: 'here is your new 6-digit verification code for LearnyMo.',
+                otpCode
+            })
+        })
+
+        res.status(200).json({
+            message: emailResult.sent
+                ? 'A new 6-digit verification code has been sent to your email.'
+                : 'Verification code generated (check server console or dev banner).',
+            emailSent: emailResult.sent,
+            devOtp: emailResult.devFallback ? otpCode : undefined
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body
+        if (!email) {
+            return res.status(400).json({ message: 'Please provide your registered email address' })
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() })
+        if (!user) {
+            return res.status(404).json({ message: 'No account found with that email address' })
+        }
+
+        const otpCode = generateSixDigitOTP()
+        user.resetPasswordOTP = otpCode
+        user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000)
+        await user.save()
+
+        const emailResult = await sendEmail({
+            to: user.email,
+            subject: 'LearnyMo Password Reset Code',
+            otpCode,
+            html: buildOtpEmailHtml({
+                name: user.name,
+                title: 'Reset Your LearnyMo Password',
+                subtitle: 'we received a request to reset your password. Enter the 6-digit code below on the password reset page to set a new password.',
+                otpCode,
+                footerNote: 'This password reset code expires in 15 minutes. If you did not request a password reset, your account remains secure.'
+            })
+        })
+
+        res.status(200).json({
+            message: emailResult.sent
+                ? 'A 6-digit password reset code has been sent to your email address.'
+                : 'Password reset code generated! (SMTP not active yet — use the code shown below or in server console).',
+            emailSent: emailResult.sent,
+            devOtp: emailResult.devFallback ? otpCode : undefined
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({
+                message: 'Please provide your email, 6-digit reset code, and new password'
+            })
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                message: 'New password must be at least 6 characters long'
+            })
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() }).select(
+            '+password +resetPasswordOTP +resetPasswordExpires'
+        )
+
+        if (!user) {
+            return res.status(404).json({ message: 'No account found with that email address' })
+        }
+
+        if (
+            !user.resetPasswordOTP ||
+            user.resetPasswordOTP !== otp.trim() ||
+            !user.resetPasswordExpires ||
+            user.resetPasswordExpires < new Date()
+        ) {
+            return res.status(400).json({
+                message: 'Invalid or expired reset code. Please request a new code.'
+            })
+        }
+
+        user.password = newPassword
+        user.resetPasswordOTP = undefined
+        user.resetPasswordExpires = undefined
+        user.isEmailVerified = true
+        await user.save()
+
+        res.status(200).json({
+            message: 'Your password has been reset successfully! You can now sign in with your new password.'
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                message: 'Please provide both your current password and a new password'
+            })
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                message: 'New password must be at least 6 characters long'
+            })
+        }
+
+        const user = await User.findById(req.user._id).select('+password')
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const isMatch = await user.matchPassword(currentPassword)
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Your current password is incorrect' })
+        }
+
+        user.password = newPassword
+        await user.save()
+
+        res.status(200).json({
+            message: 'Password updated successfully!'
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
     }
 }
 
@@ -127,6 +370,7 @@ export const loginUser = async (req,res)=>{
                 email:user.email,
                 role: user.role,
                 phone: user.phone,
+                isEmailVerified: user.isEmailVerified,
                 teacherProfile: user.teacherProfile,
                 studentProfile: user.studentProfile,
                 verificationStatus: user.role === 'teacher' ? user.teacherProfile?.verificationStatus || 'pending' : undefined,

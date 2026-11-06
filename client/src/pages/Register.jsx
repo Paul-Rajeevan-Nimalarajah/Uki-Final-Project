@@ -16,10 +16,17 @@ import {
   CheckCircle2,
   X,
   ShieldAlert,
+  RefreshCw,
 } from "lucide-react";
 
 const Register = () => {
   const [role, setRole] = useState("student");
+  const [verificationStep, setVerificationStep] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [devOtp, setDevOtp] = useState("");
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [resendingOtp, setResendingOtp] = useState(false);
+  const [verifyMessage, setVerifyMessage] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -40,7 +47,7 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { register, updateUser } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -165,10 +172,14 @@ const Register = () => {
             // ignore if already saved by register endpoint
           }
         }
-        navigate("/teacher/profile");
-      } else {
-        navigate("/dashboard");
       }
+      if (regData?.devOtp) {
+        setDevOtp(regData.devOtp);
+      }
+      setVerifyMessage(
+        `We sent a 6-digit verification code to ${formData.email}. Please enter it below to verify your email.`
+      );
+      setVerificationStep(true);
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -178,6 +189,143 @@ const Register = () => {
       setLoading(false);
     }
   };
+
+  const handleVerifyEmail = async (e) => {
+    e.preventDefault();
+    setError("");
+    setVerifyingOtp(true);
+
+    try {
+      await API.post("/auth/verify-email", {
+        email: formData.email,
+        otp,
+      });
+      if (updateUser) {
+        updateUser({ isEmailVerified: true });
+      }
+      if (role === "teacher") {
+        navigate("/teacher/profile");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Invalid or expired verification code. Please try again."
+      );
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setError("");
+    setVerifyMessage("");
+    setResendingOtp(true);
+
+    try {
+      const res = await API.post("/auth/resend-verification", {
+        email: formData.email,
+      });
+      setVerifyMessage(
+        res.data?.message || "A new 6-digit code has been sent to your email."
+      );
+      if (res.data?.devOtp) {
+        setDevOtp(res.data.devOtp);
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Could not resend verification code."
+      );
+    } finally {
+      setResendingOtp(false);
+    }
+  };
+
+  if (verificationStep) {
+    return (
+      <div className="max-w-md mx-auto my-8 bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8 space-y-5">
+        <div className="text-center">
+          <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-brand-blue/10 text-brand-blue flex items-center justify-center">
+            <Mail className="w-6 h-6" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900">
+            Verify Your Email
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Enter the 6-digit code sent to <strong>{formData.email}</strong>
+          </p>
+        </div>
+
+        {verifyMessage && (
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <span>{verifyMessage}</span>
+          </div>
+        )}
+
+        {devOtp && (
+          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
+            <p className="font-bold">
+              Dev Mode OTP Preview (SMTP not active in .env yet):
+            </p>
+            <p className="font-mono text-base font-extrabold tracking-widest text-brand-blue">
+              {devOtp}
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleVerifyEmail} className="space-y-4">
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs font-semibold text-slate-700 uppercase">
+                6-Digit Verification Code
+              </label>
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resendingOtp}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-brand-blue hover:underline"
+              >
+                <RefreshCw
+                  className={`w-3 h-3 ${resendingOtp ? "animate-spin" : ""}`}
+                />
+                <span>{resendingOtp ? "Sending..." : "Resend Code"}</span>
+              </button>
+            </div>
+            <input
+              type="text"
+              required
+              maxLength={6}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+              placeholder="Enter 6-digit code"
+              className="w-full px-3 py-2.5 text-center font-mono text-lg font-bold tracking-widest border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={verifyingOtp || otp.length < 6}
+            className={`w-full py-2.5 px-4 text-white font-semibold text-sm rounded-lg shadow-sm hover:shadow transition-all bg-brand-blue hover:bg-blue-700 ${
+              verifyingOtp || otp.length < 6
+                ? "opacity-70 cursor-not-allowed"
+                : ""
+            }`}
+          >
+            {verifyingOtp ? "Verifying Email..." : "Verify Email & Continue"}
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto my-8 bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8">

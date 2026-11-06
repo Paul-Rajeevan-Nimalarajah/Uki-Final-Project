@@ -48,6 +48,26 @@ const userSchema = new mongoose.Schema(
             type: Number,
             default:0
         },
+        isEmailVerified: {
+            type: Boolean,
+            default: false
+        },
+        emailVerificationOTP: {
+            type: String,
+            select: false
+        },
+        emailVerificationExpires: {
+            type: Date,
+            select: false
+        },
+        resetPasswordOTP: {
+            type: String,
+            select: false
+        },
+        resetPasswordExpires: {
+            type: Date,
+            select: false
+        },
 
         teacherProfile:{
             headline: {type: String, default: ''},

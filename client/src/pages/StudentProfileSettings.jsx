@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { syncUserToRegistry, getUsersRegistry } from "../utils/userRegistry";
+import ChangePasswordCard from "../components/ChangePasswordCard";
 import {
   User,
   Mail,
@@ -388,6 +389,8 @@ const StudentProfileSettings = () => {
           <span>{saving ? "Saving Profile..." : "Save Student Profile"}</span>
         </button>
       </form>
+
+      <ChangePasswordCard accentColor="brand-blue" />
     </div>
   );
 };

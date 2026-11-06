@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
 import AdminAcademic from "./pages/AdminAcademic";
 import TeacherProfileSettings from "./pages/TeacherProfileSettings";
 import StudentProfileSettings from "./pages/StudentProfileSettings";
@@ -303,6 +304,7 @@ function App() {
               <Route path="/" element={<HomeLanding />} />
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route
                 path="/classes"
                 element={

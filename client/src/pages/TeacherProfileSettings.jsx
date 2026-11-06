@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { syncUserToRegistry, applyOverridesToUser } from "../utils/userRegistry";
+import ChangePasswordCard from "../components/ChangePasswordCard";
 import {
   AlertCircle,
   CheckCircle,
@@ -507,6 +508,8 @@ const TeacherProfileSettings = () => {
           {saving ? "Saving changes..." : "Save & Submit for Admin Verification"}
         </button>
       </form>
+
+      <ChangePasswordCard accentColor="brand-teal" />
     </div>
   );
 };
